@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import os
 import time
 import uuid
 import zipfile
@@ -533,6 +534,15 @@ def test_live_rule_trigger_and_mail(client, run, name):
     assert name not in [m.get("Subject") for m in client.get(url).json()]
 
 
+# the first call makes the instance install PostgreSQL (Timestream) or AppSync's utilities
+FETCHING = {"appsync", "timestream-write", "timestream-query"}
+
+
+def skip_if_it_downloads(service):
+    if service in FETCHING and not os.environ.get("DASHBOARD_TEST_DOWNLOADS"):
+        pytest.skip("the instance downloads software on first use of this service")
+
+
 def locked_reads():
     """Pages of unlicensed services that can be opened without picking a resource first."""
     for name, service, node in ALL:
@@ -547,9 +557,19 @@ def locked_reads():
 
 @live
 @pytest.mark.parametrize("service,operation,params", list(locked_reads()))
-def test_live_locked_pages_are_stopped_only_by_the_license(client, service, operation, params):
+def test_live_pages_answer_or_name_the_license(client, service, operation, params):
+    skip_if_it_downloads(service)
+    covered = service in (client.get(f"{BASE}/licensed").json()["services"] or [])
     url = f"{BASE}/aws/{service}/{operation}"
     response = client.post(url, json={"params": params}, headers=ORIGIN)
-    # a plan that covers the service answers; this one names the license as the reason
-    if response.status_code != 200:
-        assert "not included within your LocalStack license" in response.json()["detail"]
+    if response.status_code == 200:
+        return
+    detail = response.json()["detail"]
+    if not covered:
+        # the request was well formed: only the license stands in the way
+        assert "not included within your LocalStack license" in detail
+    elif service == "dms":
+        pytest.skip("DMS stays off unless the instance is started with ENABLE_DMS=1")
+    else:
+        # such as an alternate contact nobody has set yet
+        assert "NotFound" in detail

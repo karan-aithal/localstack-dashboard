@@ -110,6 +110,8 @@ Built: the 27 locked tiles and the locked tabs of licensed tiles (API Gateway V2
 
 **Untested against real services.** Checked: names, parameters, keys and columns against botocore; each page's first read reaches the instance and is refused for the license only; all pages render in a browser; the custom views with made-up answers.
 
+Trial license (2026-11-27, expires after about 29 days): every locked page's first read answers, except DMS, which needs the instance started with `ENABLE_DMS=1`; account contacts answer "not found" until set. Create, view and remove per page are written in `backend/tests/test_trial.py` but have not been run. The first Timestream call makes the instance install PostgreSQL, and AppSync downloads its utilities; tests skip both unless `DASHBOARD_TEST_DOWNLOADS=1`. Not covered by those tests because creating downloads or may download engines: CodeCommit, ECR, EKS, ElastiCache, RDS, DocumentDB, Neptune, MQ, MWAA, MSK, Athena, SageMaker endpoints, Lambda capacity providers.
+
 Differences from the appendix, still open:
 - No AppSync query runner, Neptune graph browser or quick actions, or "Browse S3" picker.
 - Glue table update starts from an empty form.
@@ -155,7 +157,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is untested against real services. Phase 6 remains.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is only partly tested against real services. Phase 6 remains and can now be tried on the trial license.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 
