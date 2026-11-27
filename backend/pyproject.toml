@@ -1,0 +1,15 @@
+[project]
+name = "localstack-dashboard"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.44.12",
+    "fastapi>=0.165.0",
+    "httpx>=0.29.0",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
