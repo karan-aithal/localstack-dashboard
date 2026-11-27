@@ -25,26 +25,32 @@ export default function Instances() {
   return (
     <>
       <h1>Instances</h1>
-      <table>
-        <thead><tr><th>Name</th><th>Endpoint</th><th>Container</th><th></th></tr></thead>
-        <tbody>
-          {Object.entries(data).map(([name, instance]) => (
-            <tr key={name}>
-              <th scope="row">{name}</th>
-              <td>{instance.endpoint}</td>
-              <td>{instance.container}</td>
-              <td>
-                <button
-                  disabled={Object.keys(data).length === 1}
-                  onClick={() => window.confirm(`Remove bookmark "${name}"?`) && remove.mutate(name)}
-                >
-                  Remove
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="scroll">
+        <table>
+          <thead><tr><th>Name</th><th>Endpoint</th><th>Container</th><th>API docs</th><th>Actions</th></tr></thead>
+          <tbody>
+            {Object.entries(data).map(([name, instance]) => (
+              <tr key={name}>
+                <th scope="row">{name}</th>
+                <td>{instance.endpoint}</td>
+                <td>{instance.container}</td>
+                <td>
+                  <a href={`${instance.endpoint}/_localstack/swagger`} target="_blank" rel="noreferrer">Open<span className="sr-only"> API docs of {name}</span></a>
+                </td>
+                <td>
+                  <button
+                    disabled={Object.keys(data).length === 1}
+                    onClick={() => window.confirm(`Remove bookmark "${name}"?`) && remove.mutate(name)}
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">The API docs page is served by the instance and loads its viewer from unpkg.com.</p>
       <h2>Add or update a bookmark</h2>
       <form className="row" onSubmit={submit}>
         <input name="name" aria-label="Name" placeholder="Name" required pattern="[A-Za-z0-9_\-]{1,40}" />

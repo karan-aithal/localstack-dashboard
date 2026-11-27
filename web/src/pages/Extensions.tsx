@@ -41,7 +41,7 @@ export default function Extensions() {
       {installed.data?.length === 0 && <p className="muted">No extensions installed.</p>}
       {!!installed.data?.length && (
         <table>
-          <thead><tr><th>Package</th><th>Version</th><th></th></tr></thead>
+          <thead><tr><th>Package</th><th>Version</th><th>Actions</th></tr></thead>
           <tbody>
             {installed.data.map((extension, i) => (
               <tr key={extension.name ?? i}>

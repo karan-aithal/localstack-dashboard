@@ -125,6 +125,14 @@ Differences, still open:
 - Logs are read when the page is open. A container removed before that loses its sessions.
 - The event list shows the latest 500 of the selected range.
 
+## Status of Phase 7 (2026-11-27)
+Built: `make run` builds the UI and the backend serves it on 8080, with a content security policy that blocks other sites from framing it and the page from loading anything elsewhere. Status page split into Running, Available and Other with full service names; API docs link per bookmark (Phase 1 follow-ups). Phone width and table markup fixes. Lighthouse accessibility 100 on the eight pages audited.
+
+Differences, still open:
+- No compose service for the dashboard: it would need the Docker socket inside a container, which gives that container control of the host.
+- Dark mode follows the system setting; there is no switch.
+- Status cards have no service icons.
+
 ## Excluded
 Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity logs, CI analytics, hosted pod storage, cloud ephemeral instances. All depend on LocalStack's backend. (CI analytics UI was not verified in the docs.)
 
@@ -134,7 +142,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5 are committed. Phase 7 is next, then Phase 6 and 3c, which need a plan that loads their features.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5 and 7 are committed. Phase 6 and 3c remain; they need a plan that loads their features.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 

@@ -154,7 +154,7 @@ export default function S3Objects({ ids }: { ids: string[] }) {
       <div className="scroll">
         <table>
           <thead>
-            <tr><th className="check"></th><th>Key</th><th>Last modified</th><th>Size</th><th>Actions</th></tr>
+            <tr><th className="check"><span className="sr-only">Select</span></th><th>Key</th><th>Last modified</th><th>Size</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {folders.map((folder) => (

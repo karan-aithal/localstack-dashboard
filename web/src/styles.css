@@ -22,6 +22,7 @@ h1 { font-size: 20px; margin: 0 0 16px; }
 h2 { font-size: 15px; margin: 24px 0 8px; }
 button, input, select { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: Canvas; color: inherit; }
 input[type="range"] { padding: 0; border: 0; }
+input, select { box-sizing: border-box; max-width: 100%; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: 0.5; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -32,6 +33,9 @@ th { color: var(--muted); font-weight: 600; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; padding: 0; list-style: none; }
 .grid li { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; overflow-wrap: anywhere; }
 .grid li span { white-space: nowrap; }
+.grid small { display: block; }
+/* read out by screen readers only */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .good { color: var(--good); }
 .bad { color: var(--bad); }
 .warn { color: var(--warn); }
@@ -70,7 +74,7 @@ a { color: var(--accent); }
 /* on narrow screens these tables scroll sideways instead of breaking words apart */
 .scroll th, .scroll td { overflow-wrap: break-word; }
 th.check, td.check { width: 1%; }
-td.actions { display: flex; flex-wrap: wrap; gap: 4px; }
+td.actions > * { margin: 2px 4px 2px 0; }
 .lines { white-space: pre-wrap; }
 .inline { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 label.field { display: grid; }

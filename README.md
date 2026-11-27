@@ -6,9 +6,13 @@ Needs Docker, [uv](https://docs.astral.sh/uv/), Node 24 and a running LocalStack
 
 ```bash
 make install
-make dev          # open http://localhost:5180
+make run          # build the UI and open http://localhost:8080
 make check        # tests and production build
 ```
+
+`make dev` serves the UI with live reload on http://localhost:5180 instead, for working on the
+dashboard. Both use port 8080, so run one at a time. Colours follow the system's light or dark
+setting.
 
 ## Pages
 

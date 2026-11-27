@@ -9,10 +9,13 @@ type Data = {
   } | null;
 };
 
+type Service = { id: string; title: string };
+
 const TONE: Record<string, string> = { running: "good", available: "muted", error: "bad", disabled: "warn" };
 
 export default function Status() {
   const { data, error } = useInstanceQuery<Data>("/status");
+  const names = useInstanceQuery<Service[]>("/services", false);
   const [filter, setFilter] = useState("");
 
   if (error) return <p role="alert" className="bad">{error.message}</p>;
@@ -20,7 +23,14 @@ export default function Status() {
 
   const services = Object.entries(data.health.services);
   const running = services.filter(([, state]) => state === "running").length;
-  const shown = services.filter(([name]) => name.includes(filter.toLowerCase()));
+  // full names come from the AWS definitions; until then, and for the rest, the short name stands in
+  const titles = new Map(names.data?.map((s) => [s.id, s.title]));
+  const shown = services.filter(([id]) => `${id} ${titles.get(id) ?? ""}`.toLowerCase().includes(filter.toLowerCase()));
+  const sections = [
+    { title: "Running", items: shown.filter(([, state]) => state === "running") },
+    { title: "Available", items: shown.filter(([, state]) => state === "available") },
+    { title: "Other", items: shown.filter(([, state]) => state !== "running" && state !== "available") },
+  ].filter((section) => section.items.length > 0);
 
   return (
     <>
@@ -32,14 +42,23 @@ export default function Status() {
           {Object.entries(data.health.features ?? {}).map(([k, v]) => `${k}: ${v}`).join(", ")}
         </span>
       </div>
-      <ul className="grid">
-        {shown.map(([name, state]) => (
-          <li key={name}>
-            {name}
-            <span className={TONE[state] ?? ""}>{state}</span>
-          </li>
-        ))}
-      </ul>
+      {sections.length === 0 && <p className="muted">No service matches.</p>}
+      {sections.map((section) => (
+        <section key={section.title}>
+          <h2>{section.title} ({section.items.length})</h2>
+          <ul className="grid">
+            {section.items.map(([id, state]) => (
+              <li key={id}>
+                <div>
+                  {titles.get(id) ?? id}
+                  <small className="muted">{id}</small>
+                </div>
+                <span className={TONE[state] ?? ""}>{state}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
       {data.init && (
         <>
           <h2>Init scripts</h2>

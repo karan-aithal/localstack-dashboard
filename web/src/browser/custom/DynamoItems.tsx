@@ -156,7 +156,7 @@ function Items({ name, table }: { name: string; table: Table }) {
         <table>
           <thead>
             <tr>
-              <th className="check"></th>
+              <th className="check"><span className="sr-only">Select</span></th>
               {heads.map((head) => (
                 <th key={head}>{head}</th>
               ))}
