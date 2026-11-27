@@ -28,7 +28,9 @@ def licensed(instance: Selected):
     plugins = info.get("available_plugins")
     if plugins is None:
         return {"services": None}
-    names = {p.removeprefix(_PROVIDER).split(":")[0] for p in plugins if p.startswith(_PROVIDER)}
+    providers = [p.removeprefix(_PROVIDER) for p in plugins if p.startswith(_PROVIDER)]
+    # a covered "legacy" provider is not the one in use: MSK has one, yet its calls are refused
+    names = {p.split(":")[0] for p in providers if not p.endswith(":legacy")}
     return {"services": sorted(names)}
 
 

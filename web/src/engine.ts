@@ -5,7 +5,22 @@ import type { Params } from "./params.ts";
 export type Call = { op: string; params?: Params; label?: string; custom?: string };
 /** `reveal` hides the result, such as a secret value, until it is asked for. */
 export type Read = Call & { reveal?: boolean };
-export type Listing = Call & { items: string; key?: string | string[]; columns?: string[] };
+/** `choose` is a parameter the reader picks from a dropdown, the first option to begin with. */
+export type Listing = Call & {
+  items: string;
+  key?: string | string[];
+  columns?: string[];
+  choose?: { name: string; options: string[] };
+};
+
+export type Source = Call & { path: string; as?: string; also?: Record<string, string> };
+
+/** Form values from what the instance answered. */
+export function current(result: unknown, { path, as, also = {} }: Source): Params {
+  const value = getPath(result, path) ?? {};
+  const extra = Object.entries(also).map(([field, from]) => [field, getPath(result, from)]);
+  return { ...(as ? { [as]: value } : (value as Params)), ...Object.fromEntries(extra) };
+}
 
 /** One page of the browser. Exactly one of list, show, form, custom, link or sections is set. */
 export type Node = {
@@ -19,8 +34,11 @@ export type Node = {
   actions?: (Call & { label: string })[];
   views?: Node[];
   show?: Read;
-  /** `from` reads the current values first; `as` names the field if the read value is a single one */
-  form?: Call & { from?: Call & { path: string; as?: string } };
+  /**
+   * `from` reads the current values first; `as` names the field if the read value is a single one,
+   * and `also` fills further fields from other paths of the same answer.
+   */
+  form?: Call & { from?: Source };
   custom?: string;
   link?: string;
   sections?: Node[];

@@ -6,7 +6,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { useInstanceQuery, useScope } from "../api";
 import { useAws, useAwsCall, useRefresh } from "../aws";
 import OperationForm, { Json } from "../components/OperationForm";
-import { type Call, cell, columns, fillLink, getPath, href, label as nameOf, type Node, params, type Row, rowKey, type Service, title } from "../engine";
+import { type Call, cell, columns, current, fillLink, getPath, href, label as nameOf, type Node, params, type Row, rowKey, type Service, type Source, title } from "../engine";
 import type { Params } from "../params";
 import registry from "../registry.json";
 import { CUSTOM } from "./custom";
@@ -200,15 +200,12 @@ function Reveal({ children }: { children: ReactNode }) {
   );
 }
 
-type Source = NonNullable<NonNullable<Node["form"]>["from"]>;
-
 function Prefilled({ service, operation, source, fixed, ids }: { service: string; operation: string; source: Source; fixed: Params; ids: string[] }) {
   const { data, error } = useAws(service, source.op, params(source, { ids }));
   if (error) return <p role="alert" className="bad">{error.message}</p>;
   if (!data) return <p>Loading…</p>;
-  const value = getPath(data.result, source.path) ?? {};
-  const current = source.as ? { [source.as]: value } : (value as Params);
-  return <OperationForm service={service} operation={operation} initial={{ ...current, ...fixed }} submitLabel="Save" />;
+  const initial = { ...current(data.result, source), ...fixed };
+  return <OperationForm service={service} operation={operation} initial={initial} submitLabel="Save" />;
 }
 
 function Create({ node, place }: { node: Node; place: Place }) {
@@ -239,7 +236,9 @@ function ListView({ node, place }: { node: Node; place: Place }) {
   const [token, setToken] = useState<Params>();
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const base = params(listing, { ids: place.ids });
+  const { choose } = listing;
+  const [choice, setChoice] = useState(choose?.options[0] ?? "");
+  const base = { ...params(listing, { ids: place.ids }), ...(choose && { [choose.name]: choice }) };
   const { data, error, refetch, isFetching } = useAws(place.api, listing.op, { ...base, ...token });
 
   const rows = ((data && getPath(data.result, listing.items)) ?? []) as Row[];
@@ -291,6 +290,14 @@ function ListView({ node, place }: { node: Node; place: Place }) {
   return (
     <>
       <div className="row">
+        {choose && (
+          <label className="choice">
+            {title(choose.name)}
+            <select value={choice} onChange={(e) => { setChoice(e.target.value); turn(undefined); }}>
+              {choose.options.map((option) => <option key={option}>{option}</option>)}
+            </select>
+          </label>
+        )}
         <input type="search" aria-label="Filter this page" placeholder="Filter this page" value={filter} onChange={(e) => setFilter(e.target.value)} />
         <button onClick={() => refetch()} disabled={isFetching}>Refresh</button>
         {node.create && (

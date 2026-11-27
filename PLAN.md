@@ -105,6 +105,19 @@ Differences from the appendix, still open:
 - Deletes that AWS refuses while something is still attached (IAM users, rules with targets, non-empty zones) show the AWS error; there is no cascading delete.
 - Transcribe has no audio upload; the job form takes an S3 URI.
 
+## Status of Phase 3c (2026-11-27)
+Built: the 27 locked tiles and the locked tabs of licensed tiles (API Gateway V2, EventBridge Pipes, Load Balancers V2, SES V2, Lambda capacity providers, Cognito identity pools), with custom views for the Athena and Timestream query editors, the AppSync schema and ECR push commands. They unlock by themselves when the license covers the service.
+
+**Untested against real services.** Checked: names, parameters, keys and columns against botocore; each page's first read reaches the instance and is refused for the license only; all pages render in a browser; the custom views with made-up answers.
+
+Differences from the appendix, still open:
+- No AppSync query runner, Neptune graph browser or quick actions, or "Browse S3" picker.
+- Glue table update starts from an empty form.
+- Athena browses the `AwsDataCatalog` catalog only.
+- Deleting an RDS or Neptune instance or cluster skips the final snapshot.
+- Lambda capacity providers belong to a licensed service, so the page shows the instance's error instead of "Not in your plan".
+- MSK: the license lists only an unused legacy provider, which no longer counts as covered.
+
 ## Status of Phase 4 (2026-11-27)
 Built: App Inspector (enable, requests, flow, sequence, operation tabs, IAM events, clear) and Extensions (list, install, remove, 16 known packages with names checked on PyPI).
 
@@ -142,7 +155,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5 and 7 are committed. Phase 6 and 3c remain; they need a plan that loads their features.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is untested against real services. Phase 6 remains.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 

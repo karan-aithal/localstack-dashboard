@@ -21,7 +21,7 @@ setting.
 | Overview | Instance info, license type, active features, start / restart / stop |
 | Status | Service states and init scripts |
 | Stack | Resources of all accounts and regions, grouped by service |
-| Resources | Pages for the 24 services of a freemium license, such as S3, Lambda, IAM and Step Functions |
+| Resources | Pages for 51 services, such as S3, Lambda, IAM and Step Functions. A freemium license covers 24; the others show "Not in your plan" |
 | Explorer | Any operation of any service: generated form or JSON, response, next page |
 | App Inspector | Recorded operations as requests, with flow, sequence, payloads and IAM events |
 | Extensions | Installed extensions, install by package name, known packages |
@@ -42,6 +42,9 @@ the page read them are gone.
 Pages are described in `web/src/registry.json`: for each tab the list operation, key, columns,
 create and remove operations, and views. `make test` checks every entry against the AWS API
 definitions. Views a table or generated form cannot express live in `web/src/browser/custom/`.
+
+Pages of services outside a freemium license have never run against a real service. Their
+operations, parameters and columns are checked against the definitions only.
 
 Uploads through the dashboard are limited to 50 MB per file.
 

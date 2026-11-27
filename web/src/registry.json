@@ -123,6 +123,16 @@
             ]
           }
         ]
+      },
+      {
+        "id": "capacity-providers",
+        "label": "Capacity providers",
+        "list": { "op": "ListCapacityProviders", "items": "CapacityProviders", "key": "CapacityProviderArn", "columns": ["CapacityProviderArn", "State", "LastModified"] },
+        "create": { "op": "CreateCapacityProvider" },
+        "remove": { "op": "DeleteCapacityProvider", "params": { "CapacityProviderName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetCapacityProvider", "params": { "CapacityProviderName": "$0" } } }
+        ]
       }
     ]
   },
@@ -281,7 +291,21 @@
         ]
       },
       { "id": "keys", "label": "API keys", "list": { "op": "GetApiKeys", "items": "items", "key": "id", "columns": ["name", "id", "enabled", "createdDate"] } },
-      { "id": "plans", "label": "Usage plans", "list": { "op": "GetUsagePlans", "items": "items", "key": "id", "columns": ["name", "id", "description"] } }
+      { "id": "plans", "label": "Usage plans", "list": { "op": "GetUsagePlans", "items": "items", "key": "id", "columns": ["name", "id", "description"] } },
+      {
+        "id": "v2",
+        "label": "V2 APIs",
+        "service": "apigatewayv2",
+        "list": { "op": "GetApis", "items": "Items", "key": "ApiId", "columns": ["Name", "ApiId", "ProtocolType", "ApiEndpoint"] },
+        "create": { "op": "CreateApi" },
+        "remove": { "op": "DeleteApi", "params": { "ApiId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetApi", "params": { "ApiId": "$0" } } },
+          { "id": "routes", "label": "Routes", "show": { "op": "GetRoutes", "params": { "ApiId": "$0" } } },
+          { "id": "integrations", "label": "Integrations", "show": { "op": "GetIntegrations", "params": { "ApiId": "$0" } } },
+          { "id": "stages", "label": "Stages", "show": { "op": "GetStages", "params": { "ApiId": "$0" } } }
+        ]
+      }
     ]
   },
   {
@@ -352,6 +376,17 @@
           },
           { "id": "send", "label": "Send event", "custom": "put-event" }
         ]
+      },
+      {
+        "id": "pipes",
+        "label": "Pipes",
+        "service": "pipes",
+        "list": { "op": "ListPipes", "items": "Pipes", "key": "Name", "columns": ["Name", "CurrentState", "Source", "Target"] },
+        "create": { "op": "CreatePipe" },
+        "remove": { "op": "DeletePipe", "params": { "Name": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribePipe", "params": { "Name": "$0" } } }
+        ]
       }
     ]
   },
@@ -400,7 +435,20 @@
           { "id": "allow", "label": "Add inbound rule", "form": { "op": "AuthorizeSecurityGroupIngress", "params": { "GroupId": "$0" } } },
           { "id": "revoke", "label": "Remove inbound rule", "form": { "op": "RevokeSecurityGroupIngress", "params": { "GroupId": "$0" } } }
         ]
-      }
+      },
+      {
+        "id": "load-balancers",
+        "label": "Load balancers",
+        "service": "elbv2",
+        "list": { "op": "DescribeLoadBalancers", "items": "LoadBalancers", "key": "LoadBalancerArn", "columns": ["LoadBalancerName", "Type", "DNSName"] },
+        "create": { "op": "CreateLoadBalancer" },
+        "remove": { "op": "DeleteLoadBalancer", "params": { "LoadBalancerArn": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeLoadBalancers", "params": { "LoadBalancerArns": ["$0"] } } },
+          { "id": "listeners", "label": "Listeners", "list": { "op": "DescribeListeners", "params": { "LoadBalancerArn": "$0" }, "items": "Listeners", "key": "ListenerArn", "columns": ["ListenerArn", "Port", "Protocol"] }, "create": { "op": "CreateListener", "params": { "LoadBalancerArn": "$0" } }, "remove": { "op": "DeleteListener", "params": { "ListenerArn": "$key" } } }
+        ]
+      },
+      { "id": "target-groups", "label": "Target groups", "service": "elbv2", "list": { "op": "DescribeTargetGroups", "items": "TargetGroups", "key": "TargetGroupArn", "columns": ["TargetGroupName", "Protocol", "Port", "VpcId"] }, "create": { "op": "CreateTargetGroup" }, "remove": { "op": "DeleteTargetGroup", "params": { "TargetGroupArn": "$key" } } }
     ]
   },
   {
@@ -459,7 +507,18 @@
         "views": [{ "id": "verification", "label": "Verification", "show": { "op": "GetIdentityVerificationAttributes", "params": { "Identities": ["$0"] } } }]
       },
       { "id": "send", "label": "Send email", "custom": "ses-send" },
-      { "id": "mailbox", "label": "Sent mail", "custom": "ses-mailbox" }
+      { "id": "mailbox", "label": "Sent mail", "custom": "ses-mailbox" },
+      {
+        "id": "v2",
+        "label": "V2 identities",
+        "service": "sesv2",
+        "list": { "op": "ListEmailIdentities", "items": "EmailIdentities", "key": "IdentityName", "columns": ["IdentityName", "IdentityType", "VerificationStatus"] },
+        "create": { "op": "CreateEmailIdentity" },
+        "remove": { "op": "DeleteEmailIdentity", "params": { "EmailIdentity": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetEmailIdentity", "params": { "EmailIdentity": "$0" } } }
+        ]
+      }
     ]
   },
   {
@@ -786,6 +845,788 @@
         "create": { "op": "CreateResolverEndpoint", "params": { "CreatorRequestId": "$now" } },
         "remove": { "op": "DeleteResolverEndpoint", "params": { "ResolverEndpointId": "$key" } },
         "views": [{ "id": "details", "label": "Details", "show": { "op": "GetResolverEndpoint", "params": { "ResolverEndpointId": "$0" } } }]
+      }
+    ]
+  },
+  {
+    "id": "mq",
+    "title": "Amazon MQ",
+    "group": "App Integration",
+    "service": "mq",
+    "tabs": [
+      {
+        "id": "brokers",
+        "label": "Brokers",
+        "list": { "op": "ListBrokers", "items": "BrokerSummaries", "key": "BrokerId", "columns": ["BrokerName", "BrokerId", "EngineType", "BrokerState"] },
+        "create": { "op": "CreateBroker" },
+        "remove": { "op": "DeleteBroker", "params": { "BrokerId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeBroker", "params": { "BrokerId": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mwaa",
+    "title": "MWAA",
+    "group": "App Integration",
+    "service": "mwaa",
+    "tabs": [
+      {
+        "id": "environments",
+        "label": "Environments",
+        "list": { "op": "ListEnvironments", "items": "Environments" },
+        "create": { "op": "CreateEnvironment" },
+        "remove": { "op": "DeleteEnvironment", "params": { "Name": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetEnvironment", "params": { "Name": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateEnvironment", "params": { "Name": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "pipes",
+    "title": "EventBridge Pipes",
+    "group": "App Integration",
+    "service": "pipes",
+    "tabs": [
+      {
+        "id": "pipes",
+        "label": "Pipes",
+        "list": { "op": "ListPipes", "items": "Pipes", "key": "Name", "columns": ["Name", "CurrentState", "Source", "Target"] },
+        "create": { "op": "CreatePipe" },
+        "remove": { "op": "DeletePipe", "params": { "Name": "$key" } },
+        "actions": [{ "label": "Start", "op": "StartPipe", "params": { "Name": "$key" } }, { "label": "Stop", "op": "StopPipe", "params": { "Name": "$key" } }],
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribePipe", "params": { "Name": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "application-autoscaling",
+    "title": "Application Auto Scaling",
+    "group": "App Integration",
+    "service": "application-autoscaling",
+    "tabs": [
+      { "id": "targets", "label": "Scalable targets", "list": { "op": "DescribeScalableTargets", "items": "ScalableTargets", "key": ["ResourceId", "ScalableDimension"], "columns": ["ResourceId", "ScalableDimension", "MinCapacity", "MaxCapacity"], "choose": { "name": "ServiceNamespace", "options": ["ecs", "dynamodb", "lambda", "ec2", "rds", "elasticache", "sagemaker", "kafka", "neptune", "elasticmapreduce", "appstream", "cassandra", "comprehend", "workspaces", "custom-resource"] } }, "create": { "op": "RegisterScalableTarget" }, "remove": { "op": "DeregisterScalableTarget", "params": { "ServiceNamespace": "$row.ServiceNamespace", "ResourceId": "$row.ResourceId", "ScalableDimension": "$row.ScalableDimension" }, "label": "Deregister" } }
+    ]
+  },
+  {
+    "id": "ecs",
+    "title": "ECS",
+    "group": "Compute",
+    "service": "ecs",
+    "tabs": [
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "ListClusters", "items": "clusterArns" },
+        "create": { "op": "CreateCluster" },
+        "remove": { "op": "DeleteCluster", "params": { "cluster": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeClusters", "params": { "clusters": ["$0"] } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateCluster", "params": { "cluster": "$0" } } }
+        ]
+      },
+      {
+        "id": "definitions",
+        "label": "Task definitions",
+        "list": { "op": "ListTaskDefinitions", "items": "taskDefinitionArns" },
+        "create": { "op": "RegisterTaskDefinition" },
+        "remove": { "op": "DeregisterTaskDefinition", "params": { "taskDefinition": "$key" }, "label": "Deregister" },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeTaskDefinition", "params": { "taskDefinition": "$0" } } },
+          { "id": "revision", "label": "New revision", "form": { "op": "RegisterTaskDefinition", "from": { "op": "DescribeTaskDefinition", "params": { "taskDefinition": "$0" }, "path": "taskDefinition" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ecr",
+    "title": "ECR",
+    "group": "Compute",
+    "service": "ecr",
+    "tabs": [
+      {
+        "id": "repositories",
+        "label": "Repositories",
+        "list": { "op": "DescribeRepositories", "items": "repositories", "key": "repositoryName", "columns": ["repositoryName", "repositoryUri", "createdAt"] },
+        "create": { "op": "CreateRepository" },
+        "remove": { "op": "DeleteRepository", "params": { "repositoryName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeRepositories", "params": { "repositoryNames": ["$0"] } } },
+          { "id": "images", "label": "Images", "list": { "op": "ListImages", "params": { "repositoryName": "$0" }, "items": "imageIds", "key": ["imageDigest", "imageTag"], "columns": ["imageTag", "imageDigest"] }, "remove": { "op": "BatchDeleteImage", "params": { "repositoryName": "$0", "imageIds": ["$row"] } } },
+          { "id": "push", "label": "Push commands", "custom": "ecr-push" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "eks",
+    "title": "EKS",
+    "group": "Compute",
+    "service": "eks",
+    "tabs": [
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "ListClusters", "items": "clusters" },
+        "create": { "op": "CreateCluster" },
+        "remove": { "op": "DeleteCluster", "params": { "name": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeCluster", "params": { "name": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateClusterConfig", "params": { "name": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "account",
+    "title": "Account",
+    "group": "Management",
+    "service": "account",
+    "tabs": [
+      {
+        "id": "contact",
+        "label": "Contact",
+        "sections": [
+          { "id": "current", "label": "Current", "show": { "op": "GetContactInformation" } },
+          { "id": "change", "label": "Change", "form": { "op": "PutContactInformation", "from": { "op": "GetContactInformation", "path": "ContactInformation", "as": "ContactInformation" } } }
+        ]
+      },
+      {
+        "id": "billing",
+        "label": "Billing contact",
+        "sections": [
+          { "id": "current", "label": "Current", "show": { "op": "GetAlternateContact", "params": { "AlternateContactType": "BILLING" } } },
+          { "id": "change", "label": "Change", "form": { "op": "PutAlternateContact", "params": { "AlternateContactType": "BILLING" } } }
+        ]
+      },
+      {
+        "id": "operations",
+        "label": "Operations contact",
+        "sections": [
+          { "id": "current", "label": "Current", "show": { "op": "GetAlternateContact", "params": { "AlternateContactType": "OPERATIONS" } } },
+          { "id": "change", "label": "Change", "form": { "op": "PutAlternateContact", "params": { "AlternateContactType": "OPERATIONS" } } }
+        ]
+      },
+      {
+        "id": "security",
+        "label": "Security contact",
+        "sections": [
+          { "id": "current", "label": "Current", "show": { "op": "GetAlternateContact", "params": { "AlternateContactType": "SECURITY" } } },
+          { "id": "change", "label": "Change", "form": { "op": "PutAlternateContact", "params": { "AlternateContactType": "SECURITY" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cloudtrail",
+    "title": "CloudTrail",
+    "group": "Management",
+    "service": "cloudtrail",
+    "tabs": [
+      {
+        "id": "trails",
+        "label": "Trails",
+        "list": { "op": "DescribeTrails", "items": "trailList", "key": "Name", "columns": ["Name", "S3BucketName", "HomeRegion"] },
+        "create": { "op": "CreateTrail" },
+        "remove": { "op": "DeleteTrail", "params": { "Name": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeTrails", "params": { "trailNameList": ["$0"] } } },
+          { "id": "status", "label": "Status", "show": { "op": "GetTrailStatus", "params": { "Name": "$0" } } }
+        ]
+      },
+      { "id": "events", "label": "Event history", "list": { "op": "LookupEvents", "items": "Events", "key": "EventId", "columns": ["EventTime", "EventName", "EventSource", "Username"] } }
+    ]
+  },
+  {
+    "id": "appconfig",
+    "title": "AppConfig",
+    "group": "Management",
+    "service": "appconfig",
+    "tabs": [
+      {
+        "id": "applications",
+        "label": "Applications",
+        "list": { "op": "ListApplications", "items": "Items", "key": "Id", "columns": ["Name", "Id", "Description"] },
+        "create": { "op": "CreateApplication" },
+        "remove": { "op": "DeleteApplication", "params": { "ApplicationId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetApplication", "params": { "ApplicationId": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateApplication", "params": { "ApplicationId": "$0" }, "from": { "op": "GetApplication", "params": { "ApplicationId": "$0" }, "path": "" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "codecommit",
+    "title": "CodeCommit",
+    "group": "Developer Tools",
+    "service": "codecommit",
+    "tabs": [
+      {
+        "id": "repositories",
+        "label": "Repositories",
+        "list": { "op": "ListRepositories", "items": "repositories", "key": "repositoryName", "columns": ["repositoryName", "repositoryId"] },
+        "create": { "op": "CreateRepository" },
+        "remove": { "op": "DeleteRepository", "params": { "repositoryName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetRepository", "params": { "repositoryName": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "amplify",
+    "title": "Amplify",
+    "group": "Front-end",
+    "service": "amplify",
+    "tabs": [
+      {
+        "id": "apps",
+        "label": "Apps",
+        "list": { "op": "ListApps", "items": "apps", "key": "appId", "columns": ["name", "appId", "platform", "repository"] },
+        "create": { "op": "CreateApp" },
+        "remove": { "op": "DeleteApp", "params": { "appId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetApp", "params": { "appId": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateApp", "params": { "appId": "$0" }, "from": { "op": "GetApp", "params": { "appId": "$0" }, "path": "app" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "appsync",
+    "title": "AppSync",
+    "group": "Front-end",
+    "service": "appsync",
+    "tabs": [
+      {
+        "id": "apis",
+        "label": "APIs",
+        "list": { "op": "ListGraphqlApis", "items": "graphqlApis", "key": "apiId", "columns": ["name", "apiId", "authenticationType"] },
+        "create": { "op": "CreateGraphqlApi" },
+        "remove": { "op": "DeleteGraphqlApi", "params": { "apiId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetGraphqlApi", "params": { "apiId": "$0" } } },
+          {
+            "id": "datasources",
+            "label": "Data sources",
+            "list": { "op": "ListDataSources", "params": { "apiId": "$0" }, "items": "dataSources", "key": "name", "columns": ["name", "type", "description"] },
+            "create": { "op": "CreateDataSource", "params": { "apiId": "$0" } },
+            "remove": { "op": "DeleteDataSource", "params": { "apiId": "$0", "name": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetDataSource", "params": { "apiId": "$0", "name": "$1" } } },
+              { "id": "update", "label": "Update", "form": { "op": "UpdateDataSource", "params": { "apiId": "$0", "name": "$1" }, "from": { "op": "GetDataSource", "params": { "apiId": "$0", "name": "$1" }, "path": "dataSource" } } }
+            ]
+          },
+          { "id": "schema", "label": "Schema", "custom": "appsync-schema" },
+          {
+            "id": "types",
+            "label": "Types",
+            "list": { "op": "ListTypes", "params": { "apiId": "$0", "format": "SDL" }, "items": "types", "key": "name", "columns": ["name", "description"] },
+            "create": { "op": "CreateType", "params": { "apiId": "$0" } },
+            "remove": { "op": "DeleteType", "params": { "apiId": "$0", "typeName": "$key" } },
+            "views": [
+              {
+                "id": "resolvers",
+                "label": "Resolvers",
+                "list": { "op": "ListResolvers", "params": { "apiId": "$0", "typeName": "$1" }, "items": "resolvers", "key": "fieldName", "columns": ["fieldName", "dataSourceName", "kind"] },
+                "create": { "op": "CreateResolver", "params": { "apiId": "$0", "typeName": "$1" } },
+                "remove": { "op": "DeleteResolver", "params": { "apiId": "$0", "typeName": "$1", "fieldName": "$key" } },
+                "views": [
+                  { "id": "details", "label": "Details", "show": { "op": "GetResolver", "params": { "apiId": "$0", "typeName": "$1", "fieldName": "$2" } } }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "functions",
+            "label": "Functions",
+            "list": { "op": "ListFunctions", "params": { "apiId": "$0" }, "items": "functions", "key": "functionId", "columns": ["name", "functionId", "dataSourceName"] },
+            "create": { "op": "CreateFunction", "params": { "apiId": "$0" } },
+            "remove": { "op": "DeleteFunction", "params": { "apiId": "$0", "functionId": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetFunction", "params": { "apiId": "$0", "functionId": "$1" } } }
+            ]
+          },
+          { "id": "keys", "label": "API keys", "list": { "op": "ListApiKeys", "params": { "apiId": "$0" }, "items": "apiKeys", "key": "id", "columns": ["id", "description", "expires"] }, "create": { "op": "CreateApiKey", "params": { "apiId": "$0" } }, "remove": { "op": "DeleteApiKey", "params": { "apiId": "$0", "id": "$key" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateGraphqlApi", "params": { "apiId": "$0" }, "from": { "op": "GetGraphqlApi", "params": { "apiId": "$0" }, "path": "graphqlApi" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cognito",
+    "title": "Cognito",
+    "group": "Security",
+    "service": "cognito-idp",
+    "tabs": [
+      {
+        "id": "pools",
+        "label": "User pools",
+        "list": { "op": "ListUserPools", "params": { "MaxResults": 60 }, "items": "UserPools", "key": "Id", "columns": ["Name", "Id", "CreationDate"] },
+        "create": { "op": "CreateUserPool" },
+        "remove": { "op": "DeleteUserPool", "params": { "UserPoolId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeUserPool", "params": { "UserPoolId": "$0" } } },
+          {
+            "id": "groups",
+            "label": "Groups",
+            "list": { "op": "ListGroups", "params": { "UserPoolId": "$0" }, "items": "Groups", "key": "GroupName", "columns": ["GroupName", "Description", "Precedence"] },
+            "create": { "op": "CreateGroup", "params": { "UserPoolId": "$0" } },
+            "remove": { "op": "DeleteGroup", "params": { "UserPoolId": "$0", "GroupName": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetGroup", "params": { "UserPoolId": "$0", "GroupName": "$1" } } }
+            ]
+          },
+          {
+            "id": "users",
+            "label": "Users",
+            "list": { "op": "ListUsers", "params": { "UserPoolId": "$0" }, "items": "Users", "key": "Username", "columns": ["Username", "UserStatus", "Enabled", "UserCreateDate"] },
+            "create": { "op": "AdminCreateUser", "params": { "UserPoolId": "$0" } },
+            "remove": { "op": "AdminDeleteUser", "params": { "UserPoolId": "$0", "Username": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "AdminGetUser", "params": { "UserPoolId": "$0", "Username": "$1" } } }
+            ]
+          },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateUserPool", "params": { "UserPoolId": "$0" }, "from": { "op": "DescribeUserPool", "params": { "UserPoolId": "$0" }, "path": "UserPool" } } }
+        ]
+      },
+      {
+        "id": "identity-pools",
+        "label": "Identity pools",
+        "service": "cognito-identity",
+        "list": { "op": "ListIdentityPools", "params": { "MaxResults": 60 }, "items": "IdentityPools", "key": "IdentityPoolId", "columns": ["IdentityPoolName", "IdentityPoolId"] },
+        "create": { "op": "CreateIdentityPool" },
+        "remove": { "op": "DeleteIdentityPool", "params": { "IdentityPoolId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeIdentityPool", "params": { "IdentityPoolId": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "backup",
+    "title": "Backup",
+    "group": "Storage",
+    "service": "backup",
+    "tabs": [
+      {
+        "id": "plans",
+        "label": "Plans",
+        "list": { "op": "ListBackupPlans", "items": "BackupPlansList", "key": "BackupPlanId", "columns": ["BackupPlanName", "BackupPlanId", "CreationDate"] },
+        "create": { "op": "CreateBackupPlan" },
+        "remove": { "op": "DeleteBackupPlan", "params": { "BackupPlanId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetBackupPlan", "params": { "BackupPlanId": "$0" } } },
+          {
+            "id": "selections",
+            "label": "Selections",
+            "list": { "op": "ListBackupSelections", "params": { "BackupPlanId": "$0" }, "items": "BackupSelectionsList", "key": "SelectionId", "columns": ["SelectionName", "SelectionId", "IamRoleArn"] },
+            "create": { "op": "CreateBackupSelection", "params": { "BackupPlanId": "$0" } },
+            "remove": { "op": "DeleteBackupSelection", "params": { "BackupPlanId": "$0", "SelectionId": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetBackupSelection", "params": { "BackupPlanId": "$0", "SelectionId": "$1" } } }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vaults",
+        "label": "Vaults",
+        "list": { "op": "ListBackupVaults", "items": "BackupVaultList", "key": "BackupVaultName", "columns": ["BackupVaultName", "CreationDate"] },
+        "create": { "op": "CreateBackupVault" },
+        "remove": { "op": "DeleteBackupVault", "params": { "BackupVaultName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeBackupVault", "params": { "BackupVaultName": "$0" } } },
+          { "id": "job", "label": "Start backup job", "form": { "op": "StartBackupJob", "params": { "BackupVaultName": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sagemaker",
+    "title": "SageMaker",
+    "group": "Machine Learning",
+    "service": "sagemaker",
+    "tabs": [
+      {
+        "id": "models",
+        "label": "Models",
+        "list": { "op": "ListModels", "items": "Models", "key": "ModelName", "columns": ["ModelName", "CreationTime"] },
+        "create": { "op": "CreateModel" },
+        "remove": { "op": "DeleteModel", "params": { "ModelName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeModel", "params": { "ModelName": "$0" } } }
+        ]
+      },
+      {
+        "id": "endpoint-configs",
+        "label": "Endpoint configs",
+        "list": { "op": "ListEndpointConfigs", "items": "EndpointConfigs", "key": "EndpointConfigName", "columns": ["EndpointConfigName", "CreationTime"] },
+        "create": { "op": "CreateEndpointConfig" },
+        "remove": { "op": "DeleteEndpointConfig", "params": { "EndpointConfigName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeEndpointConfig", "params": { "EndpointConfigName": "$0" } } }
+        ]
+      },
+      {
+        "id": "endpoints",
+        "label": "Endpoints",
+        "list": { "op": "ListEndpoints", "items": "Endpoints", "key": "EndpointName", "columns": ["EndpointName", "EndpointStatus", "CreationTime"] },
+        "create": { "op": "CreateEndpoint" },
+        "remove": { "op": "DeleteEndpoint", "params": { "EndpointName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeEndpoint", "params": { "EndpointName": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rds",
+    "title": "RDS",
+    "group": "Database",
+    "service": "rds",
+    "tabs": [
+      {
+        "id": "instances",
+        "label": "Instances",
+        "list": { "op": "DescribeDBInstances", "items": "DBInstances", "key": "DBInstanceIdentifier", "columns": ["DBInstanceIdentifier", "Engine", "DBInstanceClass", "DBInstanceStatus"] },
+        "create": { "op": "CreateDBInstance" },
+        "remove": { "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBInstances", "params": { "DBInstanceIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBInstance", "params": { "DBInstanceIdentifier": "$0" } } }
+        ]
+      },
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
+        "create": { "op": "CreateDBCluster" },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "docdb",
+    "title": "DocumentDB",
+    "group": "Database",
+    "service": "docdb",
+    "tabs": [
+      {
+        "id": "instances",
+        "label": "Instances",
+        "list": { "op": "DescribeDBInstances", "items": "DBInstances", "key": "DBInstanceIdentifier", "columns": ["DBInstanceIdentifier", "Engine", "DBInstanceClass", "DBInstanceStatus"] },
+        "create": { "op": "CreateDBInstance", "params": { "Engine": "docdb" } },
+        "remove": { "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBInstances", "params": { "DBInstanceIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBInstance", "params": { "DBInstanceIdentifier": "$0" } } }
+        ]
+      },
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
+        "create": { "op": "CreateDBCluster", "params": { "Engine": "docdb" } },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "neptune",
+    "title": "Neptune",
+    "group": "Database",
+    "service": "neptune",
+    "tabs": [
+      {
+        "id": "instances",
+        "label": "Instances",
+        "list": { "op": "DescribeDBInstances", "items": "DBInstances", "key": "DBInstanceIdentifier", "columns": ["DBInstanceIdentifier", "Engine", "DBInstanceClass", "DBInstanceStatus"] },
+        "create": { "op": "CreateDBInstance", "params": { "Engine": "neptune" } },
+        "remove": { "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBInstances", "params": { "DBInstanceIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBInstance", "params": { "DBInstanceIdentifier": "$0" } } }
+        ]
+      },
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
+        "create": { "op": "CreateDBCluster", "params": { "Engine": "neptune" } },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
+          { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "elasticache",
+    "title": "ElastiCache",
+    "group": "Database",
+    "service": "elasticache",
+    "tabs": [
+      {
+        "id": "clusters",
+        "label": "Cache clusters",
+        "list": { "op": "DescribeCacheClusters", "items": "CacheClusters", "key": "CacheClusterId", "columns": ["CacheClusterId", "Engine", "CacheNodeType", "CacheClusterStatus"] },
+        "create": { "op": "CreateCacheCluster" },
+        "remove": { "op": "DeleteCacheCluster", "params": { "CacheClusterId": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeCacheClusters", "params": { "CacheClusterId": "$0", "ShowCacheNodeInfo": true } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "timestream",
+    "title": "Timestream",
+    "group": "Database",
+    "service": "timestream-write",
+    "tabs": [
+      {
+        "id": "databases",
+        "label": "Databases",
+        "list": { "op": "ListDatabases", "items": "Databases", "key": "DatabaseName", "columns": ["DatabaseName", "TableCount", "CreationTime"] },
+        "create": { "op": "CreateDatabase" },
+        "remove": { "op": "DeleteDatabase", "params": { "DatabaseName": "$key" } },
+        "views": [
+          {
+            "id": "tables",
+            "label": "Tables",
+            "list": { "op": "ListTables", "params": { "DatabaseName": "$0" }, "items": "Tables", "key": "TableName", "columns": ["TableName", "TableStatus", "CreationTime"] },
+            "create": { "op": "CreateTable", "params": { "DatabaseName": "$0" } },
+            "remove": { "op": "DeleteTable", "params": { "DatabaseName": "$0", "TableName": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "DescribeTable", "params": { "DatabaseName": "$0", "TableName": "$1" } } }
+            ]
+          },
+          { "id": "details", "label": "Details", "show": { "op": "DescribeDatabase", "params": { "DatabaseName": "$0" } } }
+        ]
+      },
+      { "id": "query", "label": "Query", "service": "timestream-query", "custom": "timestream-query" }
+    ]
+  },
+  {
+    "id": "athena",
+    "title": "Athena",
+    "group": "Analytics",
+    "service": "athena",
+    "tabs": [
+      {
+        "id": "databases",
+        "label": "Databases",
+        "list": { "op": "ListDatabases", "params": { "CatalogName": "AwsDataCatalog" }, "items": "DatabaseList", "key": "Name", "columns": ["Name", "Description"] },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetDatabase", "params": { "CatalogName": "AwsDataCatalog", "DatabaseName": "$0" } } },
+          { "id": "tables", "label": "Tables", "show": { "op": "ListTableMetadata", "params": { "CatalogName": "AwsDataCatalog", "DatabaseName": "$0" } } }
+        ]
+      },
+      {
+        "id": "catalogs",
+        "label": "Catalogs",
+        "list": { "op": "ListDataCatalogs", "items": "DataCatalogsSummary", "key": "CatalogName", "columns": ["CatalogName", "Type", "Status"] },
+        "create": { "op": "CreateDataCatalog" },
+        "remove": { "op": "DeleteDataCatalog", "params": { "Name": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetDataCatalog", "params": { "Name": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateDataCatalog", "params": { "Name": "$0" }, "from": { "op": "GetDataCatalog", "params": { "Name": "$0" }, "path": "DataCatalog" } } }
+        ]
+      },
+      { "id": "sql", "label": "SQL", "custom": "athena-sql" }
+    ]
+  },
+  {
+    "id": "kafka",
+    "title": "MSK",
+    "group": "Analytics",
+    "service": "kafka",
+    "tabs": [
+      {
+        "id": "clusters",
+        "label": "Clusters",
+        "list": { "op": "ListClusters", "items": "ClusterInfoList", "key": "ClusterArn", "columns": ["ClusterName", "State", "NumberOfBrokerNodes", "CreationTime"] },
+        "create": { "op": "CreateCluster" },
+        "remove": { "op": "DeleteCluster", "params": { "ClusterArn": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeCluster", "params": { "ClusterArn": "$0" } } },
+          { "id": "brokers", "label": "Broker count", "form": { "op": "UpdateBrokerCount", "params": { "ClusterArn": "$0" }, "from": { "op": "DescribeCluster", "params": { "ClusterArn": "$0" }, "path": "ClusterInfo" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "glue",
+    "title": "Glue",
+    "group": "Analytics",
+    "service": "glue",
+    "tabs": [
+      {
+        "id": "databases",
+        "label": "Databases",
+        "list": { "op": "GetDatabases", "items": "DatabaseList", "key": "Name", "columns": ["Name", "Description", "CreateTime"] },
+        "create": { "op": "CreateDatabase" },
+        "remove": { "op": "DeleteDatabase", "params": { "Name": "$key" } },
+        "views": [
+          {
+            "id": "tables",
+            "label": "Tables",
+            "list": { "op": "GetTables", "params": { "DatabaseName": "$0" }, "items": "TableList", "key": "Name", "columns": ["Name", "Owner", "CreateTime"] },
+            "create": { "op": "CreateTable", "params": { "DatabaseName": "$0" } },
+            "remove": { "op": "DeleteTable", "params": { "DatabaseName": "$0", "Name": "$key" } },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetTable", "params": { "DatabaseName": "$0", "Name": "$1" } } },
+              { "id": "update", "label": "Update", "form": { "op": "UpdateTable", "params": { "DatabaseName": "$0" } } }
+            ]
+          },
+          { "id": "details", "label": "Details", "show": { "op": "GetDatabase", "params": { "Name": "$0" } } }
+        ]
+      },
+      {
+        "id": "connections",
+        "label": "Connections",
+        "list": { "op": "GetConnections", "items": "ConnectionList", "key": "Name", "columns": ["Name", "ConnectionType", "Description"] },
+        "create": { "op": "CreateConnection" },
+        "remove": { "op": "DeleteConnection", "params": { "ConnectionName": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetConnection", "params": { "Name": "$0" } } }
+        ]
+      },
+      {
+        "id": "crawlers",
+        "label": "Crawlers",
+        "list": { "op": "GetCrawlers", "items": "Crawlers", "key": "Name", "columns": ["Name", "DatabaseName", "Role"] },
+        "create": { "op": "CreateCrawler" },
+        "remove": { "op": "DeleteCrawler", "params": { "Name": "$key" } },
+        "actions": [{ "label": "Run", "op": "StartCrawler", "params": { "Name": "$key" } }, { "label": "Stop", "op": "StopCrawler", "params": { "Name": "$key" } }],
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetCrawler", "params": { "Name": "$0" } } }
+        ]
+      },
+      {
+        "id": "jobs",
+        "label": "Jobs",
+        "list": { "op": "GetJobs", "items": "Jobs", "key": "Name", "columns": ["Name", "Role", "CreatedOn"] },
+        "create": { "op": "CreateJob" },
+        "remove": { "op": "DeleteJob", "params": { "JobName": "$key" } },
+        "actions": [{ "label": "Run", "op": "StartJobRun", "params": { "JobName": "$key" } }],
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetJob", "params": { "JobName": "$0" } } }
+        ]
+      },
+      {
+        "id": "registries",
+        "label": "Schema registries",
+        "list": { "op": "ListRegistries", "items": "Registries", "key": "RegistryName", "columns": ["RegistryName", "Status", "Description"] },
+        "create": { "op": "CreateRegistry" },
+        "remove": { "op": "DeleteRegistry", "params": { "RegistryId": { "RegistryName": "$key" } } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetRegistry", "params": { "RegistryId": { "RegistryName": "$0" } } } }
+        ]
+      },
+      {
+        "id": "schemas",
+        "label": "Schemas",
+        "list": { "op": "ListSchemas", "items": "Schemas", "key": "SchemaArn", "columns": ["SchemaName", "RegistryName", "SchemaStatus"] },
+        "create": { "op": "CreateSchema" },
+        "remove": { "op": "DeleteSchema", "params": { "SchemaId": { "SchemaArn": "$key" } } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetSchema", "params": { "SchemaId": { "SchemaArn": "$0" } } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cloudfront",
+    "title": "CloudFront",
+    "group": "Networking",
+    "service": "cloudfront",
+    "tabs": [
+      {
+        "id": "distributions",
+        "label": "Distributions",
+        "list": { "op": "ListDistributions", "items": "DistributionList.Items", "key": "Id", "columns": ["Id", "DomainName", "Status", "LastModifiedTime"] },
+        "create": { "op": "CreateDistribution" },
+        "remove": { "op": "DeleteDistribution", "params": { "Id": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "GetDistribution", "params": { "Id": "$0" } } },
+          { "id": "update", "label": "Update", "form": { "op": "UpdateDistribution", "params": { "Id": "$0" }, "from": { "op": "GetDistributionConfig", "params": { "Id": "$0" }, "path": "DistributionConfig", "also": { "IfMatch": "ETag" }, "as": "DistributionConfig" } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dms",
+    "title": "DMS",
+    "group": "Migration",
+    "service": "dms",
+    "tabs": [
+      {
+        "id": "instances",
+        "label": "Replication instances",
+        "list": { "op": "DescribeReplicationInstances", "items": "ReplicationInstances", "key": "ReplicationInstanceArn", "columns": ["ReplicationInstanceIdentifier", "ReplicationInstanceClass", "ReplicationInstanceStatus"] },
+        "create": { "op": "CreateReplicationInstance" },
+        "remove": { "op": "DeleteReplicationInstance", "params": { "ReplicationInstanceArn": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeReplicationInstances", "params": { "Filters": [{ "Name": "replication-instance-arn", "Values": ["$0"] }] } } }
+        ]
+      },
+      {
+        "id": "endpoints",
+        "label": "Endpoints",
+        "list": { "op": "DescribeEndpoints", "items": "Endpoints", "key": "EndpointArn", "columns": ["EndpointIdentifier", "EndpointType", "EngineName", "Status"] },
+        "create": { "op": "CreateEndpoint" },
+        "remove": { "op": "DeleteEndpoint", "params": { "EndpointArn": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeEndpoints", "params": { "Filters": [{ "Name": "endpoint-arn", "Values": ["$0"] }] } } },
+          { "id": "test", "label": "Test connection", "form": { "op": "TestConnection", "params": { "EndpointArn": "$0" } } },
+          { "id": "connections", "label": "Connections", "show": { "op": "DescribeConnections", "params": { "Filters": [{ "Name": "endpoint-arn", "Values": ["$0"] }] } } }
+        ]
+      },
+      {
+        "id": "tasks",
+        "label": "Tasks",
+        "list": { "op": "DescribeReplicationTasks", "items": "ReplicationTasks", "key": "ReplicationTaskArn", "columns": ["ReplicationTaskIdentifier", "MigrationType", "Status"] },
+        "create": { "op": "CreateReplicationTask" },
+        "remove": { "op": "DeleteReplicationTask", "params": { "ReplicationTaskArn": "$key" } },
+        "actions": [{ "label": "Start", "op": "StartReplicationTask", "params": { "ReplicationTaskArn": "$key", "StartReplicationTaskType": "start-replication" } }, { "label": "Stop", "op": "StopReplicationTask", "params": { "ReplicationTaskArn": "$key" } }],
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeReplicationTasks", "params": { "Filters": [{ "Name": "replication-task-arn", "Values": ["$0"] }] } } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ce",
+    "title": "Cost Explorer",
+    "group": "Finance",
+    "service": "ce",
+    "tabs": [
+      {
+        "id": "categories",
+        "label": "Cost categories",
+        "list": { "op": "ListCostCategoryDefinitions", "items": "CostCategoryReferences", "key": "CostCategoryArn", "columns": ["Name", "CostCategoryArn", "NumberOfRules"] },
+        "create": { "op": "CreateCostCategoryDefinition" },
+        "remove": { "op": "DeleteCostCategoryDefinition", "params": { "CostCategoryArn": "$key" } },
+        "views": [
+          { "id": "details", "label": "Details", "show": { "op": "DescribeCostCategoryDefinition", "params": { "CostCategoryArn": "$0" } } }
+        ]
       }
     ]
   }

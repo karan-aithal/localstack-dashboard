@@ -10,7 +10,16 @@ import pytest
 from app import aws, features
 from conftest import ORIGIN, live
 
-REGISTRY = json.loads((Path(__file__).parents[2] / "web/src/registry.json").read_text())
+WEB = Path(__file__).parents[2] / "web/src"
+REGISTRY = json.loads((WEB / "registry.json").read_text())
+CUSTOM = (WEB / "browser/custom/index.ts").read_text()
+# services outside the freemium license: their pages are checked against the definitions only
+LOCKED = set(
+    """account amplify apigatewayv2 appconfig application-autoscaling appsync athena backup ce
+    cloudfront cloudtrail codecommit cognito-identity cognito-idp dms docdb ecr ecs eks elasticache
+    elbv2 glue kafka mq mwaa neptune pipes rds sagemaker sesv2 timestream-query
+    timestream-write""".split()
+)
 BASE = "/api/instances/default"
 
 
@@ -42,6 +51,9 @@ def member(shape, path):
     for part in path.split("."):
         while shape.type_name == "list":
             shape = shape.member
+        # a number picks one entry of the list just entered
+        if part.isdigit():
+            continue
         assert part in shape.members, f"{shape.name} has no {part}"
         shape = shape.members[part]
     return shape
@@ -57,15 +69,28 @@ def test_registry_matches_the_api(name, service, node):
         check_call(service, node["form"], complete=False)
         if source := node["form"].get("from"):
             check_call(service, source, complete=True)
-            if field := source.get("as"):
-                check_call(service, {"op": node["form"]["op"], "params": {field: ""}}, False)
+            answer = aws.operation_model(service, source["op"]).output_shape
+            also = source.get("also", {})
+            for path in [source["path"], *also.values()]:
+                if path:
+                    member(answer, path)
+            filled = [*also, *([source["as"]] if "as" in source else [])]
+            check_call(service, {"op": node["form"]["op"], "params": dict.fromkeys(filled)}, False)
+    if "custom" in node:
+        assert f'"{node["custom"]}":' in CUSTOM
     if "create" in node:
         check_call(service, node["create"], complete=False)
     for call in [node.get("remove"), *node.get("actions", [])]:
         if call:
             check_call(service, call, complete=True)
     if listing := node.get("list"):
-        check_call(service, listing, complete=True)
+        chosen = {}
+        if choose := listing.get("choose"):
+            asked = aws.operation_model(service, listing["op"]).input_shape.members[choose["name"]]
+            assert set(choose["options"]) <= set(asked.enum)
+            chosen = {choose["name"]: choose["options"][0]}
+        full = {**listing, "params": {**listing.get("params", {}), **chosen}}
+        check_call(service, full, complete=True)
         shape = aws.operation_model(service, listing["op"]).output_shape
         item = member(shape, listing["items"])
         assert item.type_name == "list"
@@ -84,6 +109,7 @@ def test_licensed_service_names(client, monkeypatch):
     plugins = [
         "localstack.aws.provider/s3:default",
         "localstack.aws.provider/lambda-web:default",
+        "localstack.aws.provider/kafka:legacy",
         "localstack.platform.plugin/extensions",
     ]
     monkeypatch.setattr(features, "read", lambda *a, **kw: {"available_plugins": plugins})
@@ -155,7 +181,7 @@ def zipped(filename: str, code: str) -> str:
 def test_live_licensed(client):
     services = client.get(f"{BASE}/licensed").json()["services"]
     used = {service for _, service, _ in ALL}
-    assert used <= set(services)
+    assert used - LOCKED <= set(services)
 
 
 @live
@@ -505,3 +531,25 @@ def test_live_rule_trigger_and_mail(client, run, name):
     url = f"{BASE}/ses/messages"
     assert client.delete(url, params={"id": sent["MessageId"]}, headers=ORIGIN).status_code == 204
     assert name not in [m.get("Subject") for m in client.get(url).json()]
+
+
+def locked_reads():
+    """Pages of unlicensed services that can be opened without picking a resource first."""
+    for name, service, node in ALL:
+        call = node.get("list") or node.get("show")
+        if service not in LOCKED or not call or "$" in json.dumps(call.get("params", {})):
+            continue
+        params = dict(call.get("params", {}))
+        if choose := call.get("choose"):
+            params[choose["name"]] = choose["options"][0]
+        yield pytest.param(service, call["op"], params, id=name)
+
+
+@live
+@pytest.mark.parametrize("service,operation,params", list(locked_reads()))
+def test_live_locked_pages_are_stopped_only_by_the_license(client, service, operation, params):
+    url = f"{BASE}/aws/{service}/{operation}"
+    response = client.post(url, json={"params": params}, headers=ORIGIN)
+    # a plan that covers the service answers; this one names the license as the reason
+    if response.status_code != 200:
+        assert "not included within your LocalStack license" in response.json()["detail"]

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { itemKey, plain, queryParams } from "./dynamo.ts";
-import { cell, columns, fillLink, getPath, href, label, rowKey, substitute, title } from "./engine.ts";
+import { cell, columns, current, fillLink, getPath, href, label, rowKey, substitute, title } from "./engine.ts";
 
 test("placeholders are filled with their own types", () => {
   const context = { ids: ["layer", "3"], key: "k", row: { Version: 7 } };
@@ -83,4 +83,14 @@ test("dynamodb query", () => {
   assert.deepEqual(query.ExpressionAttributeValues, { ":pk": { S: "a" }, ":sk": { N: "5" } });
   assert.equal(queryParams(SCHEMA, TYPES, "a", { operator: "=", value: "" }).KeyConditionExpression, "#pk = :pk");
   assert.throws(() => queryParams(SCHEMA, TYPES, "a", { operator: "OR", value: "1" }));
+});
+
+test("a form starts from what the instance answered", () => {
+  const answer = { Config: { Comment: "x" }, ETag: "v1" };
+  assert.deepEqual(current(answer, { op: "Get", path: "Config" }), { Comment: "x" });
+  assert.deepEqual(current(answer, { op: "Get", path: "Config", as: "Config", also: { IfMatch: "ETag" } }), {
+    Config: { Comment: "x" },
+    IfMatch: "v1",
+  });
+  assert.deepEqual(current(answer, { op: "Get", path: "Missing" }), {});
 });
