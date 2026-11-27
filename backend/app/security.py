@@ -24,6 +24,15 @@ def redact_text(text: str) -> str:
     return _TOKEN.sub("<redacted>", text)
 
 
+def redact_strings(value):
+    """Redact auth tokens only, leaving the user's own data, such as secrets, as it is."""
+    if isinstance(value, dict):
+        return {k: redact_strings(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact_strings(v) for v in value]
+    return redact_text(value) if isinstance(value, str) else value
+
+
 def redact(value):
     """Redact auth tokens in strings, and any value stored under a secret-looking key."""
     if isinstance(value, dict):

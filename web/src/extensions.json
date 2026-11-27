@@ -1,0 +1,18 @@
+[
+  { "package": "localstack-claude", "name": "Claude (Anthropic API)", "publisher": "LocalStack", "about": "Local emulator of the Claude API." },
+  { "package": "localstack-xero", "name": "Xero", "publisher": "LocalStack", "about": "Local emulator of the Xero API." },
+  { "package": "localstack-keycloak", "name": "Keycloak", "publisher": "LocalStack", "about": "Identity and access management server." },
+  { "package": "localstack-paradedb", "name": "ParadeDB", "publisher": "LocalStack", "about": "Postgres with search and analytics." },
+  { "package": "localstack-wiremock", "name": "WireMock", "publisher": "LocalStack and WireMock", "about": "Mock HTTP APIs." },
+  { "package": "localstack-extension-typedb", "name": "TypeDB", "publisher": "LocalStack and TypeDB", "about": "TypeDB database next to your AWS resources." },
+  { "package": "localstack-extension-terraform-init", "name": "Terraform Init Hooks", "publisher": "LocalStack", "about": "Run Terraform files when the instance starts." },
+  { "package": "localstack-extension-resource-graph", "name": "Resource Graph", "publisher": "LocalStack", "about": "Import cloud resources into a graph database." },
+  { "package": "localstack-extension-miniflare", "name": "Miniflare", "publisher": "LocalStack", "about": "Run Cloudflare Workers locally." },
+  { "package": "localstack-extension-mailhog", "name": "MailHog", "publisher": "LocalStack", "about": "Inbox for mail sent through SES." },
+  { "package": "localstack-extension-httpbin", "name": "httpbin", "publisher": "LocalStack", "about": "HTTP request and response test service." },
+  { "package": "localstack-extension-hello-world", "name": "Hello World", "publisher": "LocalStack", "about": "Minimal example extension." },
+  { "package": "localstack-extension-diagnosis-viewer", "name": "Diagnosis Viewer", "publisher": "LocalStack", "about": "Browse the instance's diagnostic report." },
+  { "package": "localstack-extension-aws-proxy", "name": "AWS Proxy", "publisher": "LocalStack", "about": "Forward selected calls to real AWS. Needs AWS credentials." },
+  { "package": "localstack-extension-stripe", "name": "Stripe", "publisher": "LocalStack", "about": "Local mock of the Stripe API." },
+  { "package": "localstack-extension-authress", "name": "Authress", "publisher": "Authress", "about": "Authentication and authorization service." }
+]

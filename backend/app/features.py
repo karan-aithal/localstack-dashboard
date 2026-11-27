@@ -7,8 +7,8 @@ from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
-from .aws import client, jsonable
-from .instance import Selected, fetch
+from .aws import client
+from .instance import Selected, fetch, read
 
 router = APIRouter(prefix="/api/instances/{name}")
 
@@ -21,21 +21,10 @@ SubscriptionArn = Annotated[
 _PROVIDER = "localstack.aws.provider/"
 
 
-def _json(instance, path: str, optional=False, **options):
-    """Body of an internal endpoint, with auth tokens redacted but AWS data left intact."""
-    response = fetch(instance, path, optional=optional, **options)
-    if response is None:
-        return None
-    try:
-        return jsonable(response.json())
-    except ValueError as e:
-        raise HTTPException(502, f"{path} did not return JSON") from e
-
-
 @router.get("/licensed")
 def licensed(instance: Selected):
     """Services the license covers, or null if the instance does not say."""
-    info = _json(instance, "/_localstack/licenseinfo", optional=True) or {}
+    info = read(instance, "/_localstack/licenseinfo", optional=True) or {}
     plugins = info.get("available_plugins")
     if plugins is None:
         return {"services": None}
@@ -53,7 +42,7 @@ def _list(value) -> list:
 @router.get("/sqs/messages")
 def sqs_messages(instance: Selected, queue_url: Annotated[str, Query(max_length=500)]):
     """All messages of a queue, without receiving them."""
-    data = _json(
+    data = read(
         instance,
         "/_aws/sqs/messages",
         params={"QueueUrl": queue_url},
@@ -78,9 +67,9 @@ def sns_messages(instance: Selected, region: Region, account: Account):
     """SMS and platform endpoint messages that LocalStack kept instead of delivering."""
     scope = {"region": region, "accountId": account}
     # these endpoints only exist once the SNS service has been used
-    sms = _json(instance, "/_aws/sns/sms-messages", optional=True, params=scope) or {}
+    sms = read(instance, "/_aws/sns/sms-messages", optional=True, params=scope) or {}
     platform = (
-        _json(instance, "/_aws/sns/platform-endpoint-messages", optional=True, params=scope) or {}
+        read(instance, "/_aws/sns/platform-endpoint-messages", optional=True, params=scope) or {}
     )
     return {
         "sms": sms.get("sms_messages", {}),
@@ -90,7 +79,7 @@ def sns_messages(instance: Selected, region: Region, account: Account):
 
 @router.get("/sns/subscription-token")
 def sns_token(instance: Selected, arn: SubscriptionArn):
-    data = _json(instance, f"/_aws/sns/subscription-tokens/{arn}", optional=True)
+    data = read(instance, f"/_aws/sns/subscription-tokens/{arn}", optional=True)
     return {"token": (data or {}).get("subscription_token")}
 
 
@@ -103,7 +92,7 @@ RuleArn = Annotated[
 @router.get("/ses/messages")
 def ses_messages(instance: Selected):
     """Mail that SES accepted. LocalStack keeps it instead of delivering it."""
-    data = _json(instance, "/_aws/ses", optional=True) or {}
+    data = read(instance, "/_aws/ses", optional=True) or {}
     return data.get("messages", [])
 
 
@@ -124,14 +113,14 @@ def trigger_rule(instance: Selected, arn: RuleArn):
 
 @router.get("/lambda/runtimes")
 def lambda_runtimes(instance: Selected):
-    data = _json(instance, "/_aws/lambda/runtimes", optional=True) or {}
+    data = read(instance, "/_aws/lambda/runtimes", optional=True) or {}
     return sorted(data.get("Runtimes", []))
 
 
 @router.post("/dynamodb/expired")
 def delete_expired_items(instance: Selected):
     """Delete items whose time to live has passed, in all tables."""
-    return _json(instance, "/_aws/dynamodb/expired", method="DELETE")
+    return read(instance, "/_aws/dynamodb/expired", method="DELETE")
 
 
 @router.get("/s3/download")

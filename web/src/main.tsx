@@ -1,11 +1,13 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { StrictMode, useState } from "react";
+import { type ReactNode, StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, NavLink, Route, Routes } from "react-router";
-import { api, InstanceContext, ScopeContext } from "./api";
+import { api, InstanceContext, ScopeContext, useInstanceQuery } from "./api";
 import Browser from "./browser/Browser";
+import AppInspector from "./pages/AppInspector";
 import Config from "./pages/Config";
 import Explorer from "./pages/Explorer";
+import Extensions from "./pages/Extensions";
 import Instances from "./pages/Instances";
 import Logs from "./pages/Logs";
 import Overview from "./pages/Overview";
@@ -21,6 +23,8 @@ const PAGES = [
   { path: "/stack", label: "Stack", page: <Stack /> },
   { path: "/resources", route: "/resources/:service?/:tab?", label: "Resources", page: <Browser /> },
   { path: "/explorer", route: "/explorer/:service?/:operation?", label: "Explorer", page: <Explorer /> },
+  { path: "/app-inspector", label: "App Inspector", page: <AppInspector />, plugin: "appinspector" },
+  { path: "/extensions", label: "Extensions", page: <Extensions />, plugin: "extensions" },
   { path: "/logs", label: "Logs", page: <Logs /> },
   { path: "/config", label: "Config", page: <Config /> },
   { path: "/instances", label: "Instances", page: <Instances /> },
@@ -31,6 +35,14 @@ const REGIONS = [
   "eu-west-1", "eu-west-2", "eu-west-3", "eu-central-1", "eu-north-1",
   "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ap-northeast-2",
 ];
+
+/** Show a page only if the instance loaded its plugin; otherwise make none of its calls. */
+function RequiresPlugin({ name, children }: { name: string; children: ReactNode }) {
+  const { data, error } = useInstanceQuery<{ plugins: { name: string; is_loaded: boolean }[] }>("/overview", false);
+  if (error) return <p role="alert" className="bad">{error.message}</p>;
+  if (!data) return <p>Loading…</p>;
+  return data.plugins.some((p) => p.name === name && p.is_loaded) ? children : <p className="warn">Not in your plan.</p>;
+}
 
 function read(key: string, fallback: string) {
   try {
@@ -112,8 +124,8 @@ function App() {
         {/* keyed so that page state (log buffer, form input) never carries over between instances */}
         <main key={current}>
           <Routes>
-            {PAGES.map(({ path, route, page }) => (
-              <Route key={path} path={route ?? path} element={page} />
+            {PAGES.map(({ path, route, page, plugin }) => (
+              <Route key={path} path={route ?? path} element={plugin ? <RequiresPlugin name={plugin}>{page}</RequiresPlugin> : page} />
             ))}
             <Route path="*" element={<p>Page not found.</p>} />
           </Routes>

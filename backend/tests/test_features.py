@@ -86,9 +86,9 @@ def test_licensed_service_names(client, monkeypatch):
         "localstack.aws.provider/lambda-web:default",
         "localstack.platform.plugin/extensions",
     ]
-    monkeypatch.setattr(features, "_json", lambda *a, **kw: {"available_plugins": plugins})
+    monkeypatch.setattr(features, "read", lambda *a, **kw: {"available_plugins": plugins})
     assert client.get(f"{BASE}/licensed").json() == {"services": ["lambda-web", "s3"]}
-    monkeypatch.setattr(features, "_json", lambda *a, **kw: None)
+    monkeypatch.setattr(features, "read", lambda *a, **kw: None)
     assert client.get(f"{BASE}/licensed").json() == {"services": None}
 
 

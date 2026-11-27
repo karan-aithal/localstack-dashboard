@@ -105,6 +105,16 @@ Differences from the appendix, still open:
 - Deletes that AWS refuses while something is still attached (IAM users, rules with targets, non-empty zones) show the AWS error; there is no cascading delete.
 - Transcribe has no audio upload; the job form takes an S3 URI.
 
+## Status of Phase 4 (2026-11-27)
+Built: App Inspector (enable, requests, flow, sequence, operation tabs, IAM events, clear) and Extensions (list, install, remove, 16 known packages with names checked on PyPI).
+
+Differences, still open:
+- Live updates poll every 2 seconds; the `/v1/ws/spans` websocket is not used.
+- Flow is plain SVG; `@xyflow/react` was not added.
+- Auto-Derived Policies is not built: it needs the Ultimate plan, so it cannot be seen here.
+- No extension was installed. The installed list's real shape and the success events are unseen.
+- API contract found: install `POST /_localstack/extensions/install {"URL": <package>}` answers NDJSON events; uninstall takes `{"distribution": <package>}`.
+
 ## Excluded
 Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity logs, CI analytics, hosted pod storage, cloud ephemeral instances. All depend on LocalStack's backend. (CI analytics UI was not verified in the docs.)
 
@@ -114,7 +124,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0, 1, 2, 3a and 3b are built (not committed); Phase 3c is next.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 4 are committed. Phase 3c was moved after 4; Phase 5 is next.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 

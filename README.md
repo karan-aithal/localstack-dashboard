@@ -19,6 +19,8 @@ make check        # tests and production build
 | Stack | Resources of all accounts and regions, grouped by service |
 | Resources | Pages for the 24 services of a freemium license, such as S3, Lambda, IAM and Step Functions |
 | Explorer | Any operation of any service: generated form or JSON, response, next page |
+| App Inspector | Recorded operations as requests, with flow, sequence, payloads and IAM events |
+| Extensions | Installed extensions, install by package name, known packages |
 | Logs | Live container logs with text and level filter |
 | Config | Instance configuration, if the instance exposes it |
 | Instances | Bookmarks: name, endpoint, container |
@@ -32,6 +34,9 @@ create and remove operations, and views. `make test` checks every entry against 
 definitions. Views a table or generated form cannot express live in `web/src/browser/custom/`.
 
 Uploads through the dashboard are limited to 50 MB per file.
+
+Installing an extension runs third-party code inside the instance. The dashboard accepts
+package names only, not URLs or paths, and asks before installing.
 
 ## Security
 

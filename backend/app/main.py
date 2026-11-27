@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import aws, features, instance, logs
+from . import appinspector, aws, extensions, features, instance, logs
 from .security import ALLOWED_HOSTS, csrf_guard
 
 app = FastAPI(
@@ -16,3 +16,5 @@ app.include_router(instance.router)
 app.include_router(logs.router)
 app.include_router(aws.router)
 app.include_router(features.router)
+app.include_router(appinspector.router)
+app.include_router(extensions.router)

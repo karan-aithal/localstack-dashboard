@@ -10,7 +10,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 
-from .security import redact, redact_text
+from .security import redact, redact_strings, redact_text
 
 router = APIRouter(prefix="/api/instances")
 
@@ -56,18 +56,24 @@ def fetch(instance: Instance, path: str, method="GET", body=None, optional=False
     Request an internal LocalStack endpoint.
 
     :param optional: return None on 404, for endpoints that depend on the edition or configuration
-    :param options: passed to httpx, such as params and headers
+    :param options: passed to httpx, such as params, headers and timeout
     """
+    options.setdefault("timeout", 15)
     try:
         response = httpx.request(
-            method, instance.endpoint + path, json=body, timeout=15, trust_env=False, **options
+            method, instance.endpoint + path, json=body, trust_env=False, **options
         )
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Instance unreachable: {type(e).__name__}") from e
     if optional and response.status_code == 404:
         return None
     if response.is_error:
-        raise HTTPException(502, f"{method} {path} returned {response.status_code}")
+        detail = f"{method} {path} returned {response.status_code}"
+        try:
+            detail += f": {response.json().get('message') or response.json()['error']}"
+        except (ValueError, KeyError, AttributeError):
+            pass
+        raise HTTPException(502, redact_text(detail))
     return response
 
 
@@ -80,6 +86,19 @@ def call(instance: Instance, path: str, method="GET", body=None, optional=False)
         return redact(response.json())
     except ValueError:
         return None
+
+
+def read(instance: Instance, path: str, optional=False, **options):
+    """
+    Like `call`, for endpoints that return the user's AWS data: only auth tokens are redacted.
+    """
+    response = fetch(instance, path, optional=optional, **options)
+    if response is None:
+        return None
+    try:
+        return redact_strings(response.json())
+    except ValueError as e:
+        raise HTTPException(502, f"{path} did not return JSON") from e
 
 
 def docker(*args: str) -> subprocess.CompletedProcess:
