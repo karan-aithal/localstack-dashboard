@@ -115,6 +115,16 @@ Differences, still open:
 - No extension was installed. The installed list's real shape and the success events are unseen.
 - API contract found: install `POST /_localstack/extensions/install {"URL": <package>}` answers NDJSON events; uninstall takes `{"distribution": <package>}`.
 
+## Status of Phase 5 (2026-11-27)
+Built: Stack Insights from container logs into SQLite: session list with filter, session page with time range, service and failure filters, calls over time, calls per service, event list. Counts of the running session matched `/_localstack/stackinfo` exactly.
+
+Differences, still open:
+- No Clients chart or User agent column: the log has no client.
+- Calls made by the dashboard are counted; they cannot be told apart.
+- Sessions are identified by start time, not by LocalStack's session ID (the log does not print it).
+- Logs are read when the page is open. A container removed before that loses its sessions.
+- The event list shows the latest 500 of the selected range.
+
 ## Excluded
 Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity logs, CI analytics, hosted pod storage, cloud ephemeral instances. All depend on LocalStack's backend. (CI analytics UI was not verified in the docs.)
 
@@ -124,7 +134,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 4 are committed. Phase 3c was moved after 4; Phase 5 is next.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5 are committed. Phase 7 is next, then Phase 6 and 3c, which need a plan that loads their features.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 

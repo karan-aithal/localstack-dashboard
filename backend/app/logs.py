@@ -12,7 +12,7 @@ from .security import redact_text
 
 router = APIRouter(prefix="/api/instances")
 
-_ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 HEARTBEAT_SECONDS = 15
 
 
@@ -34,7 +34,7 @@ async def follow(container: str, tail: int):
                 continue
             if not line:
                 break
-            text = _ANSI.sub("", line.decode(errors="replace")).rstrip().replace("\r", "")
+            text = ANSI.sub("", line.decode(errors="replace")).rstrip().replace("\r", "")
             yield f"data: {redact_text(text)}\n\n"
         yield "event: end\ndata:\n\n"
     finally:

@@ -21,11 +21,17 @@ make check        # tests and production build
 | Explorer | Any operation of any service: generated form or JSON, response, next page |
 | App Inspector | Recorded operations as requests, with flow, sequence, payloads and IAM events |
 | Extensions | Installed extensions, install by package name, known packages |
+| Stack Insights | One session per run of the instance: calls over time, per service and one by one |
 | Logs | Live container logs with text and level filter |
 | Config | Instance configuration, if the instance exposes it |
 | Instances | Bookmarks: name, endpoint, container |
 
 Bookmarks are stored in `~/.config/localstack-dashboard/instances.json`.
+
+Stack Insights reads the request lines of `docker logs` when you open it and keeps service,
+operation, status and error code in `insights.db` next to the bookmarks. Sessions stay listed
+after the container is removed; delete that file to forget them. Runs that were removed before
+the page read them are gone.
 
 ## Resource pages
 

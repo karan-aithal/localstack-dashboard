@@ -8,6 +8,7 @@ import AppInspector from "./pages/AppInspector";
 import Config from "./pages/Config";
 import Explorer from "./pages/Explorer";
 import Extensions from "./pages/Extensions";
+import Insights from "./pages/Insights";
 import Instances from "./pages/Instances";
 import Logs from "./pages/Logs";
 import Overview from "./pages/Overview";
@@ -25,6 +26,7 @@ const PAGES = [
   { path: "/explorer", route: "/explorer/:service?/:operation?", label: "Explorer", page: <Explorer /> },
   { path: "/app-inspector", label: "App Inspector", page: <AppInspector />, plugin: "appinspector" },
   { path: "/extensions", label: "Extensions", page: <Extensions />, plugin: "extensions" },
+  { path: "/insights", route: "/insights/:session?", label: "Stack Insights", page: <Insights /> },
   { path: "/logs", label: "Logs", page: <Logs /> },
   { path: "/config", label: "Config", page: <Config /> },
   { path: "/instances", label: "Instances", page: <Instances /> },

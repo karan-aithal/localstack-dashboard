@@ -21,6 +21,7 @@ main { flex: 1; min-width: 0; padding: 24px; }
 h1 { font-size: 20px; margin: 0 0 16px; }
 h2 { font-size: 15px; margin: 24px 0 8px; }
 button, input, select { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: Canvas; color: inherit; }
+input[type="range"] { padding: 0; border: 0; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: 0.5; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -84,6 +85,17 @@ figcaption { font-weight: 600; margin-bottom: 8px; }
 .chart .series { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .dot { fill: var(--series); stroke: Canvas; stroke-width: 2; }
 .readout { margin: 4px 0 12px; }
+.chart path.ok { fill: var(--series); }
+.chart path.failed { fill: #dc3c3d; }
+.chart .highlight { fill: light-dark(#0000000d, #ffffff14); }
+.legend { display: flex; gap: 6px; align-items: center; margin: 0 0 4px; }
+.legend span { width: 10px; height: 10px; border-radius: 2px; }
+.legend span + span { margin-left: 10px; }
+.legend .ok, .meter .ok { background: #257de0; background: light-dark(#257de0, #338ced); }
+.legend .failed, .meter .failed { background: #dc3c3d; }
+th.wide { width: 50%; }
+.meter { display: flex; gap: 2px; height: 10px; min-width: 80px; }
+.meter span { min-width: 2px; border-radius: 0 4px 4px 0; }
 .flow { display: block; font-size: 12px; }
 .flow rect { fill: var(--panel); stroke: var(--line); }
 .flow .start rect { stroke: var(--accent); stroke-width: 2; }
@@ -119,4 +131,6 @@ summary { cursor: pointer; }
   nav { flex-direction: row; flex-wrap: wrap; align-items: center; width: auto; border-right: 0; border-bottom: 1px solid var(--line); }
   nav label { margin: 0; }
   main { padding: 16px; }
+  /* the drawing shrinks to the screen: keep its labels readable */
+  .chart text { font-size: 22px; }
 }

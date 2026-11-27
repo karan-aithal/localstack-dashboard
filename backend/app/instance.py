@@ -103,7 +103,10 @@ def read(instance: Instance, path: str, optional=False, **options):
 
 def docker(*args: str) -> subprocess.CompletedProcess:
     try:
-        return subprocess.run(["docker", *args], capture_output=True, text=True, timeout=90)
+        # logs can hold any bytes: never fail on decoding them
+        return subprocess.run(
+            ["docker", *args], capture_output=True, text=True, errors="replace", timeout=90
+        )
     except (OSError, subprocess.TimeoutExpired) as e:
         raise HTTPException(502, f"docker failed: {type(e).__name__}") from e
 
