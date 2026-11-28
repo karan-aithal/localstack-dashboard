@@ -42,6 +42,20 @@ def sent(monkeypatch):
     return calls
 
 
+def test_permission_check_wants_full_arns(client, sent):
+    permission = {"action": "s3:ListBucket", "resource": "*"}
+    body = {"access_key_id": "a", "region_name": "b", "required_permissions": [permission]}
+    assert client.post(f"{BASE}/iam/check", json=body, headers=ORIGIN).status_code == 422
+    assert sent == []
+
+
+def test_missing_state_routes_are_explained(client, monkeypatch):
+    monkeypatch.setattr(state, "fetch", lambda *a, **k: None)
+    response = client.post(f"{BASE}/state/save", headers=ORIGIN)
+    assert response.status_code == 502
+    assert "persistence" in response.json()["detail"]
+
+
 RULE = {"service": "s3", "probability": 0.5, "error": {"statusCode": 503, "code": "Unavailable"}}
 
 

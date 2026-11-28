@@ -21,7 +21,8 @@ class Config(BaseModel):
 
 class Permission(BaseModel):
     action: str = Field(pattern=r"^[A-Za-z0-9-]+:[A-Za-z0-9*?]+$", max_length=200)
-    resource: str = Field(min_length=1, max_length=2048)
+    # a full ARN: the instance fails on a bare "*"
+    resource: str = Field(pattern=r"^arn:[^:]*:[^:]*:[^:]*:[^:]*:.+$", max_length=2048)
 
 
 class Check(BaseModel):

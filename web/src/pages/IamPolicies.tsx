@@ -129,7 +129,7 @@ function Check() {
   const instance = useInstance();
   const { region, account } = useScope();
   const [key, setKey] = useState(account);
-  const [rows, setRows] = useState<Permission[]>([{ action: "", resource: "*" }]);
+  const [rows, setRows] = useState<Permission[]>([{ action: "", resource: "" }]);
   const check = useMutation({
     mutationFn: () =>
       api<Answer>(instancePath(instance, "/iam/check"), "POST", { access_key_id: key, region_name: region, required_permissions: rows }),
@@ -143,7 +143,7 @@ function Check() {
 
   return (
     <>
-      <p className="muted">Ask whether the owner of an access key may do something, in region {region}.</p>
+      <p className="muted">Ask whether the owner of an access key may do something, in region {region}. Each resource is a full ARN, such as arn:aws:s3:::* for every bucket.</p>
       <form onSubmit={submit}>
         <label className="field">
           Access key ID
@@ -152,12 +152,12 @@ function Check() {
         {rows.map((row, i) => (
           <div className="row" key={i}>
             <input required aria-label={`Action ${i + 1}`} placeholder="s3:ListBucket" pattern="[A-Za-z0-9\-]+:[A-Za-z0-9*?]+" value={row.action} onChange={(e) => edit(i, "action", e.target.value)} />
-            <input required aria-label={`Resource ${i + 1}`} size={40} value={row.resource} onChange={(e) => edit(i, "resource", e.target.value)} />
+            <input required aria-label={`Resource ${i + 1}`} placeholder="arn:aws:s3:::bucket" pattern="arn:[^:]*:[^:]*:[^:]*:[^:]*:.+" size={40} value={row.resource} onChange={(e) => edit(i, "resource", e.target.value)} />
             {rows.length > 1 && <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))}>Remove</button>}
           </div>
         ))}
         <div className="row">
-          <button type="button" disabled={rows.length >= 20} onClick={() => setRows([...rows, { action: "", resource: "*" }])}>Add action</button>
+          <button type="button" disabled={rows.length >= 20} onClick={() => setRows([...rows, { action: "", resource: "" }])}>Add action</button>
           <button className="primary" disabled={check.isPending}>Check</button>
         </div>
       </form>

@@ -202,7 +202,11 @@ def reset(instance: Selected, wanted: Reset):
 @router.post("/instances/{name}/state/{action}")
 def save_or_load(instance: Selected, action: Literal["save", "load"]):
     """Write state to the instance's own volume, or read it back. Answers one result per service."""
-    response = fetch(instance, f"/_localstack/state/{action}", method="POST", timeout=SLOW)
+    path = f"/_localstack/state/{action}"
+    response = fetch(instance, path, method="POST", optional=True, timeout=SLOW)
+    if response is None:
+        detail = f"The instance does not offer state {action} (404). It may be running without persistence."
+        raise HTTPException(502, detail)
     results = []
     for line in response.text.splitlines():
         try:

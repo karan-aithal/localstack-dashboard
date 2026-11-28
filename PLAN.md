@@ -131,7 +131,13 @@ Verified: input checks, origin checks, pod files and credential redaction with t
 
 With `DASHBOARD_TEST_STATE=1` the live tests also passed (2026-11-28): adding and removing a fault, setting latency, switching IAM to soft mode and back, and a pod round trip (export, SQS reset, load).
 
-**Not verified:** resetting all services, save and load on the instance, adding a remote, merge strategies other than the default, IAM `ENFORCED`, and these actions clicked through in the browser. **Never run:** a replication job.
+Checked from the browser on the trial instance (2026-11-28):
+- A pod of SQS only, loaded with `service-merge`, brought back a deleted queue and its message.
+- Save and load on the instance answer 404 there (persistence off); the dashboard now says so. Not run with persistence on.
+- Switching IAM to `ENFORCED` and back worked, but calls with the dashboard's account keys, made-up access keys and no signature (SQS and IAM lists) were still served. A call by an IAM user without permissions is untried.
+- The permission check fails in the instance on the resource `*`; the form now asks for a full ARN.
+
+**Not verified:** resetting all services, adding a remote, the `overwrite` merge strategy. **Never run:** a replication job.
 
 Differences, still open:
 - Pods cannot be saved to or loaded from a remote.
