@@ -1447,6 +1447,15 @@
         "remove": { "op": "DeleteDataCatalog", "params": { "Name": "$key" } },
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "GetDataCatalog", "params": { "Name": "$0" } } },
+          {
+            "id": "databases",
+            "label": "Databases",
+            "list": { "op": "ListDatabases", "params": { "CatalogName": "$0" }, "items": "DatabaseList", "key": "Name", "columns": ["Name", "Description"] },
+            "views": [
+              { "id": "details", "label": "Details", "show": { "op": "GetDatabase", "params": { "CatalogName": "$0", "DatabaseName": "$1" } } },
+              { "id": "tables", "label": "Tables", "show": { "op": "ListTableMetadata", "params": { "CatalogName": "$0", "DatabaseName": "$1" } } }
+            ]
+          },
           { "id": "update", "label": "Update", "form": { "op": "UpdateDataCatalog", "params": { "Name": "$0" }, "from": { "op": "GetDataCatalog", "params": { "Name": "$0" }, "path": "DataCatalog" } } }
         ]
       },
