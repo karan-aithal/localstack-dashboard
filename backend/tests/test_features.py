@@ -250,7 +250,9 @@ def test_live_sqs_and_sns(client, run, name):
     topic = run("sns", "CreateTopic", Name=name)["TopicArn"]
     run.later("sns", "DeleteTopic", TopicArn=topic)
     number = "+15550100123"
-    run("sns", "Subscribe", TopicArn=topic, Protocol="sms", Endpoint=number)
+    sms = run("sns", "Subscribe", TopicArn=topic, Protocol="sms", Endpoint=number)["SubscriptionArn"]
+    # subscriptions outlive their topic, so they are removed by themselves
+    run.later("sns", "Unsubscribe", SubscriptionArn=sms)
     email = run(
         "sns",
         "Subscribe",
@@ -259,6 +261,7 @@ def test_live_sqs_and_sns(client, run, name):
         Endpoint="test@example.com",
         ReturnSubscriptionArn=True,
     )["SubscriptionArn"]
+    run.later("sns", "Unsubscribe", SubscriptionArn=email)
     run("sns", "Publish", TopicArn=topic, Message=name)
     scope = {"region": "us-east-1", "account": "000000000000"}
     sent = client.get(f"{BASE}/sns/messages", params=scope).json()
