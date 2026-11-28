@@ -139,7 +139,9 @@ Checked from the browser on the trial instance (2026-11-28):
 
 A `file://` remote was added, listed and removed from the browser; nothing was saved to it.
 
-**Not verified:** resetting all services, the `overwrite` merge strategy. **Never run:** a replication job.
+Resetting all services from the browser left only default resources. A pod of SQS loaded with `overwrite` removed the queue and message added since it was saved and left an S3 bucket alone.
+
+**Never run:** a replication job.
 
 Differences, still open:
 - Pods cannot be saved to or loaded from a remote.
@@ -153,7 +155,7 @@ Differences, still open:
 - Live updates poll every 2 seconds; the `/v1/ws/spans` websocket is not used.
 - Flow is plain SVG; `@xyflow/react` was not added.
 - Auto-Derived Policies is not built: it needs the Ultimate plan, so it cannot be seen here.
-- No extension was installed. The installed list's real shape and the success events are unseen.
+- Checked on the trial instance (2026-11-28) with `localstack-extension-hello-world` 0.1.1: installed from the browser, listed with its version, loaded, then removed. The instance restarted by itself after the install and after the removal, which emptied it (persistence off). The dashboard now warns of this before either, and no longer reports a successful removal as an error. The fixed pages were not run against the instance again.
 - API contract found: install `POST /_localstack/extensions/install {"URL": <package>}` answers NDJSON events; uninstall takes `{"distribution": <package>}`.
 
 ## Status of Phase 5 (2026-11-27)

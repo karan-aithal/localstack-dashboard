@@ -55,5 +55,12 @@ def install(instance: Selected, wanted: Package):
 @router.post("/uninstall")
 def uninstall(instance: Selected, wanted: Package):
     body = {"distribution": wanted.package}
-    read(instance, f"{BASE}/uninstall", method="POST", body=body, timeout=600)
-    return {"ok": True}
+    response = fetch(instance, f"{BASE}/uninstall", method="POST", body=body, timeout=600)
+    # a successful answer is not a single JSON value: only a failure it reports counts
+    ok = True
+    for line in response.text.splitlines():
+        try:
+            ok = ok and json.loads(line)["event"] != "exception"
+        except (ValueError, KeyError, TypeError):
+            continue
+    return {"ok": ok}

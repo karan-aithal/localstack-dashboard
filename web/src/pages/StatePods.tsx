@@ -73,7 +73,7 @@ function LocalPods() {
     change.mutate({ run, said: `Imported into ${pod}.` });
   };
   const load = ({ pod, version }: Pod) =>
-    window.confirm(`Load version ${version} of "${pod}" into instance "${instance}" with ${merge}? This changes its resources.`) &&
+    window.confirm(`Load version ${version} of "${pod}" into instance "${instance}" with ${merge}? This changes its resources.${merge === "overwrite" ? "\n\nServices in the pod lose what they got since it was saved." : ""}`) &&
     change.mutate({
       run: () => api(instancePath(instance, `/pods/${pod}/${version}/load?merge=${merge}`), "POST"),
       said: `Loaded ${pod} version ${version}.`,

@@ -7,22 +7,25 @@ import catalog from "../extensions.json";
 type Installed = { name: string | null; version: string | null; details: unknown };
 type Outcome = { ok: boolean; events: { event: string; message: string }[] };
 
+const RESTART = "The instance restarts at once. Without persistence, everything in it is erased.";
+
 export default function Extensions() {
   const instance = useInstance();
-  const installed = useInstanceQuery<Installed[]>("/extensions", false);
+  // asked again and again, so that the list catches up after a restart
+  const installed = useInstanceQuery<Installed[]>("/extensions");
   const [filter, setFilter] = useState("");
   const install = useMutation({
     mutationFn: (name: string) => api<Outcome>(instancePath(instance, "/extensions/install"), "POST", { package: name }),
     onSettled: () => installed.refetch(),
   });
   const remove = useMutation({
-    mutationFn: (name: string) => api(instancePath(instance, "/extensions/uninstall"), "POST", { package: name }),
+    mutationFn: (name: string) => api<{ ok: boolean }>(instancePath(instance, "/extensions/uninstall"), "POST", { package: name }),
     onSettled: () => installed.refetch(),
   });
   const busy = install.isPending || remove.isPending;
 
   const confirmInstall = (name: string) => {
-    const warning = `Install "${name}" on instance "${instance}"?\n\nThis downloads the package from the Python package index and runs its code inside your instance, with access to everything the instance holds. Install only packages you trust.`;
+    const warning = `Install "${name}" on instance "${instance}"?\n\nThis downloads the package from the Python package index and runs its code inside your instance, with access to everything the instance holds. Install only packages you trust.\n\n${RESTART}`;
     if (window.confirm(warning)) install.mutate(name);
   };
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -49,7 +52,7 @@ export default function Extensions() {
                 <td>{extension.version}</td>
                 <td>
                   <button className="danger" disabled={busy || !extension.name}
-                    onClick={() => window.confirm(`Remove "${extension.name}" from instance "${instance}"?`) && remove.mutate(extension.name!)}>
+                    onClick={() => window.confirm(`Remove "${extension.name}" from instance "${instance}"?\n\n${RESTART}`) && remove.mutate(extension.name!)}>
                     Remove
                   </button>
                 </td>
@@ -58,13 +61,18 @@ export default function Extensions() {
           </tbody>
         </table>
       )}
-      <p className="muted">An installed or removed extension takes effect after the instance restarts. Without persistence, a restart empties the instance.</p>
+      <p className="muted">Installing or removing an extension restarts the instance. Without persistence, a restart empties it.</p>
+      {remove.data && (
+        <p role="status" className={remove.data.ok ? "good" : "bad"}>
+          {remove.data.ok ? `Removed ${remove.variables}. The instance is restarting.` : `Removing ${remove.variables} failed.`}
+        </p>
+      )}
 
       {install.isPending && <p role="status">Installing {install.variables}. This can take a few minutes.</p>}
       {install.data && (
         <section aria-label="Installation log">
           <p role="status" className={install.data.ok ? "good" : "bad"}>
-            {install.data.ok ? `Installed ${install.variables}. Restart the instance to load it.` : `Installing ${install.variables} failed.`}
+            {install.data.ok ? `Installed ${install.variables}. The instance is restarting to load it.` : `Installing ${install.variables} failed.`}
           </p>
           <details open={!install.data.ok}>
             <summary>Installer output</summary>

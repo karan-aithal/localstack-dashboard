@@ -58,6 +58,16 @@ def test_install_outcome_comes_from_the_events(client, monkeypatch, last, ok):
     }
 
 
+@pytest.mark.parametrize(
+    "text,ok",
+    [("", True), ('Removed\n{"event": "status"}\n', True), ('{"event": "exception"}\n', False)],
+)
+def test_removal_fails_only_if_the_answer_says_so(client, monkeypatch, text, ok):
+    monkeypatch.setattr(extensions, "fetch", lambda *a, **kw: type("R", (), {"text": text})())
+    url = f"{BASE}/extensions/uninstall"
+    assert client.post(url, json={"package": "x"}, headers=ORIGIN).json() == {"ok": ok}
+
+
 def test_describe_extension():
     nested = {"distribution": {"name": "pkg", "version": "1"}, "name": "plugin"}
     assert extensions.describe(nested)["name"] == "pkg"

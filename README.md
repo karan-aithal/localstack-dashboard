@@ -84,7 +84,8 @@ Two actions do more than their name says:
   no snapshot page; use the explorer to list or delete snapshots.
 
 Installing an extension runs third-party code inside the instance. The dashboard accepts
-package names only, not URLs or paths, and asks before installing.
+package names only, not URLs or paths, and asks before installing. Installing or removing one
+restarts the instance at once, which erases everything in it unless persistence is on.
 
 ## Security
 
