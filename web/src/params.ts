@@ -17,6 +17,12 @@ const TEXT = new Set(["string", "timestamp", "blob"]);
 
 export const isDestructive = (operation: string) => /Delete|Deletion|Terminate|Purge|Remove/.test(operation);
 
+const S3_NAME = /s3\w*(uri|url|path|location)|(output|script)location|modeldataurl/i;
+
+/** Whether a field, or anything nested in it, takes an S3 address, going by the names. */
+export const takesS3 = ({ name, template }: Field) =>
+  S3_NAME.test(name) || [...(JSON.stringify(template)?.matchAll(/"(\w+)":/g) ?? [])].some(([, key]) => S3_NAME.test(key));
+
 export function parseParams(json: string): Params {
   const value: unknown = JSON.parse(json);
   if (typeof value !== "object" || value === null || Array.isArray(value)) {

@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { type Scope, useScope } from "../../api";
 import { useAwsCall } from "../../aws";
+import S3Picker from "../../components/S3Picker";
 
 type Table = { columns: string[]; rows: string[][]; more: boolean };
 
@@ -49,6 +50,7 @@ export function AthenaSql() {
         Output location (S3 address, if the workgroup sets none)
         <input value={output} placeholder="s3://bucket/results/" pattern="s3://.+" onChange={(e) => setOutput(e.target.value)} />
       </label>
+      <S3Picker onPick={setOutput} />
     </Editor>
   );
 }

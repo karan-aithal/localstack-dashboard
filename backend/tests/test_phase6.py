@@ -295,7 +295,8 @@ def test_live_pod_roundtrip(client):
         assert response.status_code == 200, response.json()
         return response.json()["result"]
 
-    if aws("ListQueues").get("QueueUrls"):
+    # the reset reaches every account and region, so look in all of them
+    if client.get(f"{BASE}/resources").json().get("AWS::SQS::Queue"):
         pytest.skip("SQS holds queues: the test would delete them")
 
     def reset():

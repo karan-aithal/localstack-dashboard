@@ -12,10 +12,12 @@ import {
   NUMBERS,
   type Params,
   parseParams,
+  takesS3,
   toParams,
   toValues,
   type Values,
 } from "../params";
+import S3Picker from "./S3Picker";
 
 type Spec = { documentation: string; fields: Field[] };
 type Run = Scope & { params: Params; token?: Params };
@@ -180,6 +182,15 @@ function FieldInput({ id, field, value, onChange }: { id: string; field: Field; 
   const options = type === "boolean" ? ["true", "false"] : field.enum;
   const example = JSON.stringify(field.template, null, 2);
   const nested = !["string", "timestamp", "blob", "boolean"].includes(type) && !NUMBERS.has(type);
+  const [picked, setPicked] = useState("");
+  // inside a nested value the address cannot be placed for the user, so it is copied instead
+  const pick = (uri: string) => {
+    if (!nested) return onChange(uri);
+    navigator.clipboard.writeText(uri).then(
+      () => setPicked(`Copied ${uri}. Paste it into the value.`),
+      () => setPicked(`Could not copy. The address is ${uri}`),
+    );
+  };
 
   return (
     <div className="field">
@@ -215,6 +226,8 @@ function FieldInput({ id, field, value, onChange }: { id: string; field: Field; 
           Insert example
         </button>
       )}
+      {(type === "string" || nested) && takesS3(field) && <S3Picker onPick={pick} />}
+      {picked && <span role="status">{picked}</span>}
       <small id={`${id}-help`} className="muted">{field.documentation}</small>
     </div>
   );

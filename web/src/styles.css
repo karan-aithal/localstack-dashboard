@@ -127,6 +127,9 @@ tr[aria-selected="true"] { background: var(--panel); }
 .response { max-height: 60vh; overflow: auto; margin: 0; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
 details { margin-bottom: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
 summary { cursor: pointer; }
+.s3-browse { max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; }
+.s3-browse ul { max-height: 240px; overflow: auto; padding: 0; list-style: none; }
+.s3-browse li { margin-bottom: 4px; }
 @media (max-width: 1100px) {
   .explorer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .explorer > :last-child { grid-column: 1 / -1; }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decodeText, encodeText, type Field, isDestructive, parseParams, toParams, toValues } from "./params.ts";
+import { decodeText, encodeText, type Field, isDestructive, parseParams, takesS3, toParams, toValues } from "./params.ts";
 
 const field = (name: string, type: string): Field => ({
   name,
@@ -39,6 +39,15 @@ test("text survives base64, binary is recognised", () => {
   assert.equal(decodeText(encodeText("héllo ✓")), "héllo ✓");
   assert.equal(decodeText("//4="), null);
   assert.equal(decodeText("not base64!"), null);
+});
+
+test("fields that take an S3 address are recognised", () => {
+  assert.ok(takesS3(field("OutputS3Uri", "string")));
+  const nested = (template: unknown) => ({ ...field("Settings", "structure"), template });
+  assert.ok(takesS3(nested({ ScriptLocation: "string" })));
+  assert.ok(takesS3(nested([{ Source: { ModelDataUrl: "string" } }])));
+  assert.ok(!takesS3(nested({ Url: "string", Location: "s3Uri" })));
+  assert.ok(!takesS3(field("QueueUrl", "string")));
 });
 
 test("destructive operations are recognised", () => {

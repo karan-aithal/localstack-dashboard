@@ -113,7 +113,8 @@ Checked on the freemium license: names, parameters, keys and columns against bot
 Trial license (2026-11-27, expires after about 29 days): every locked page's first read answers, except DMS, which needs the instance started with `ENABLE_DMS=1`; account contacts answer "not found" until set. Create, view and remove pass for 25 cases in `backend/tests/test_trial.py`. The AppSync and Timestream cases are skipped by default and have not been run. Found and fixed: CloudFront distributions could not be removed, because the delete needs a version tag the list lacks. All 54 formerly locked pages draw real answers in a browser, apart from DMS and unset account contacts. The first Timestream call makes the instance install PostgreSQL, and AppSync downloads its utilities; tests skip both unless `DASHBOARD_TEST_DOWNLOADS=1`. Not covered by those tests because creating downloads or may download engines: CodeCommit, ECR, EKS, ElastiCache, RDS, DocumentDB, Neptune, MQ, MWAA, MSK, Athena, SageMaker endpoints, Lambda capacity providers.
 
 Differences from the appendix, still open:
-- No AppSync query runner, Neptune graph browser or quick actions, or "Browse S3" picker.
+- No AppSync query runner, or Neptune graph browser and quick actions.
+- "Browse S3" (added 2026-11-28) sits on the Athena output location and on form fields whose names ask for an S3 address. It fills a text field; inside a nested JSON value it copies the address for pasting. It lists the first 1000 entries of a folder. Checked in a browser with made-up S3 answers.
 - Glue table update starts from an empty form.
 - Athena browses the `AwsDataCatalog` catalog only.
 - Deleting an RDS or Neptune instance or cluster skips the final snapshot.
@@ -127,7 +128,9 @@ API facts found: the policy stream is `GET /_aws/iam/policies/stream` (a line of
 
 Verified: input checks, origin checks, pod files and credential redaction with the instance replaced; reads, permission check, policy stream and a state export against the trial instance; pages and confirm dialogs in a browser.
 
-**Not verified, because they change the instance:** adding and removing faults and latency, switching enforcement, loading a pod, reset, save and load, adding a remote. Tests for faults, enforcement and a pod round trip exist and run with `DASHBOARD_TEST_STATE=1`. **Never run:** a replication job.
+With `DASHBOARD_TEST_STATE=1` the live tests also passed (2026-11-28): adding and removing a fault, setting latency, switching IAM to soft mode and back, and a pod round trip (export, SQS reset, load).
+
+**Not verified:** resetting all services, save and load on the instance, adding a remote, merge strategies other than the default, IAM `ENFORCED`, and these actions clicked through in the browser. **Never run:** a replication job.
 
 Differences, still open:
 - Pods cannot be saved to or loaded from a remote.
@@ -171,7 +174,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is tested on the trial license where no large download is needed. Phase 6 is committed; its state-changing actions are not yet run.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is tested on the trial license where no large download is needed. Phase 6 is committed; its state-changing tests pass.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 
