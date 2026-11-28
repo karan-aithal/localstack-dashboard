@@ -66,26 +66,30 @@ def row_key(row, key):
     return str(row[key])
 
 
-def lifecycle(run, path, params, marker, ids=()):
+def lifecycle(run, path, params, ids=()):
     """Do what the page at `path` does with a new resource. Returns the ids of pages below it."""
     node, api = page(path)
     listing, create = node["list"], node["create"]
-    result = run(api, create["op"], **fill(create.get("params", {}), ids), **params)
-
     asked = fill(listing.get("params", {}), ids)
     if choose := listing.get("choose"):
         asked[choose["name"]] = params[choose["name"]]
-    rows = at(run(api, listing["op"], **asked), listing["items"])
-    # the name given, or any identifier the instance answered with
-    answered = [v for part in result.values() if isinstance(part, dict) for v in part.values()]
-    known = [marker, marker.replace("-", "_"), *result.values(), *answered]
-    markers = [m for m in known if isinstance(m, str) and len(m) > 3]
-    matching = [r for r in rows if any(m in json.dumps(r) for m in markers)]
-    assert matching, f"{path}: the new resource is not listed: {rows} after {result}"
-    row = matching[0]
-    key = row_key(row, listing.get("key"))
+
+    def listed():
+        rows = at(run(api, listing["op"], **asked), listing["items"])
+        return {row_key(r, listing.get("key")): r for r in rows}
+
+    before = listed()
+    run(api, create["op"], **fill(create.get("params", {}), ids), **params)
+    # only what was not there before may be touched, and later removed
+    new = {k: r for k, r in listed().items() if k not in before}
+    assert len(new) == 1, f"{path}: expected one new entry in the list, found {new}"
+    [(key, row)] = new.items()
     remove = node["remove"]
-    run.later(api, remove["op"], **fill(remove.get("params", {}), ids, key, row))
+    removal = fill(remove.get("params", {}), ids, key, row)
+    if first := remove.get("first"):
+        found = run(api, first["op"], **fill(first.get("params", {}), ids, key, row))
+        removal |= {field: at(found, path) for field, path in first["also"].items()}
+    run.later(api, remove["op"], **removal)
 
     inner = [*ids, key]
     for view in node.get("views", []):
@@ -134,6 +138,13 @@ def scalable_target(run, name):
 def trail(run, name):
     run("s3", "CreateBucket", Bucket=name)
     run.later("s3", "DeleteBucket", Bucket=name)
+
+    def empty():
+        for found in run("s3", "ListObjectsV2", Bucket=name).get("Contents", []):
+            run("s3", "DeleteObject", Bucket=name, Key=found["Key"])
+
+    # the trail writes into its bucket, which must be empty to be deleted
+    run.defer(empty)
     return {"Name": name, "S3BucketName": name}
 
 
@@ -286,7 +297,12 @@ CASES = [
         ),
         {},
     ),
-    ("sagemaker/models", simple(ModelName="{n}", ExecutionRoleArn=ROLE), {}),
+    (
+        "sagemaker/models",
+        # the instance fails with an internal error without a container
+        simple(ModelName="{n}", ExecutionRoleArn=ROLE, PrimaryContainer={"Image": "test:none"}),
+        {},
+    ),
     (
         "sagemaker/endpoint-configs",
         simple(
@@ -314,6 +330,6 @@ def test_live_page_lifecycle(run, name, covered, path, prepare, children):  # no
     if api not in covered:
         pytest.skip(f"the license does not cover {api}")
     skip_if_it_downloads(api)
-    ids = lifecycle(run, path, prepare(run, name), name)
+    ids = lifecycle(run, path, prepare(run, name))
     for view, child in children.items():
-        lifecycle(run, f"{path}/{view}", child(run, name), name, ids)
+        lifecycle(run, f"{path}/{view}", child(run, name), ids)

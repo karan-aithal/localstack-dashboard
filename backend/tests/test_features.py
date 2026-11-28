@@ -84,6 +84,13 @@ def test_registry_matches_the_api(name, service, node):
     for call in [node.get("remove"), *node.get("actions", [])]:
         if call:
             check_call(service, call, complete=True)
+            if first := call.get("first"):
+                check_call(service, first, complete=True)
+                answer = aws.operation_model(service, first["op"]).output_shape
+                for path in first["also"].values():
+                    member(answer, path)
+                fields = dict.fromkeys(first["also"])
+                check_call(service, {"op": call["op"], "params": fields}, complete=False)
     if listing := node.get("list"):
         chosen = {}
         if choose := listing.get("choose"):
@@ -153,15 +160,24 @@ class Runner:
         return response.json()["result"]
 
     def later(self, service, operation, **params):
-        self.cleanups.append((service, operation, params))
+        self.defer(lambda: self(service, operation, **params))
+
+    def defer(self, step):
+        self.cleanups.append(step)
 
 
 @pytest.fixture
 def run(client):
     runner = Runner(client)
     yield runner
-    for service, operation, params in reversed(runner.cleanups):
-        runner(service, operation, **params)
+    failures = []
+    # one resource that stays must not keep the others from being removed
+    for step in reversed(runner.cleanups):
+        try:
+            step()
+        except AssertionError as e:
+            failures.append(str(e))
+    assert not failures, failures
 
 
 @pytest.fixture

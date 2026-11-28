@@ -2,7 +2,14 @@
 
 import type { Params } from "./params.ts";
 
-export type Call = { op: string; params?: Params; label?: string; custom?: string };
+export type Call = {
+  op: string;
+  params?: Params;
+  label?: string;
+  custom?: string;
+  /** reads, for a change to a row, what the change needs and the row lacks, such as a version tag */
+  first?: { op: string; params?: Params; also: Record<string, string> };
+};
 /** `reveal` hides the result, such as a secret value, until it is asked for. */
 export type Read = Call & { reveal?: boolean };
 /** `choose` is a parameter the reader picks from a dropdown, the first option to begin with. */
@@ -15,11 +22,14 @@ export type Listing = Call & {
 
 export type Source = Call & { path: string; as?: string; also?: Record<string, string> };
 
+/** Fields filled from paths of what the instance answered. */
+export const picked = (result: unknown, also: Record<string, string> = {}): Params =>
+  Object.fromEntries(Object.entries(also).map(([field, path]) => [field, getPath(result, path)]));
+
 /** Form values from what the instance answered. */
-export function current(result: unknown, { path, as, also = {} }: Source): Params {
+export function current(result: unknown, { path, as, also }: Source): Params {
   const value = getPath(result, path) ?? {};
-  const extra = Object.entries(also).map(([field, from]) => [field, getPath(result, from)]);
-  return { ...(as ? { [as]: value } : (value as Params)), ...Object.fromEntries(extra) };
+  return { ...(as ? { [as]: value } : (value as Params)), ...picked(result, also) };
 }
 
 /** One page of the browser. Exactly one of list, show, form, custom, link or sections is set. */

@@ -6,7 +6,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { useInstanceQuery, useScope } from "../api";
 import { useAws, useAwsCall, useRefresh } from "../aws";
 import OperationForm, { Json } from "../components/OperationForm";
-import { type Call, cell, columns, current, fillLink, getPath, href, label as nameOf, type Node, params, type Row, rowKey, type Service, type Source, title } from "../engine";
+import { type Call, cell, columns, current, fillLink, getPath, href, label as nameOf, type Node, params, picked, type Row, rowKey, type Service, type Source, title } from "../engine";
 import type { Params } from "../params";
 import registry from "../registry.json";
 import { CUSTOM } from "./custom";
@@ -257,7 +257,10 @@ function ListView({ node, place }: { node: Node; place: Place }) {
       for (const row of targets) {
         const key = keyOf(row);
         try {
-          await call(place.api, action.op, params(action, { ids: place.ids, row, key }));
+          const context = { ids: place.ids, row, key };
+          const { first } = action;
+          const found = first && (await call(place.api, first.op, params(first, context)));
+          await call(place.api, action.op, { ...params(action, context), ...picked(found?.result, first?.also) });
         } catch (e) {
           failed.push(`${key}: ${(e as Error).message}`);
         }

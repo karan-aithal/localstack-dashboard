@@ -1563,7 +1563,7 @@
         "label": "Distributions",
         "list": { "op": "ListDistributions", "items": "DistributionList.Items", "key": "Id", "columns": ["Id", "DomainName", "Status", "LastModifiedTime"] },
         "create": { "op": "CreateDistribution" },
-        "remove": { "op": "DeleteDistribution", "params": { "Id": "$key" } },
+        "remove": { "op": "DeleteDistribution", "params": { "Id": "$key" }, "first": { "op": "GetDistributionConfig", "params": { "Id": "$key" }, "also": { "IfMatch": "ETag" } } },
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "GetDistribution", "params": { "Id": "$0" } } },
           { "id": "update", "label": "Update", "form": { "op": "UpdateDistribution", "params": { "Id": "$0" }, "from": { "op": "GetDistributionConfig", "params": { "Id": "$0" }, "path": "DistributionConfig", "also": { "IfMatch": "ETag" }, "as": "DistributionConfig" } } }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { itemKey, plain, queryParams } from "./dynamo.ts";
-import { cell, columns, current, fillLink, getPath, href, label, rowKey, substitute, title } from "./engine.ts";
+import { cell, columns, current, fillLink, getPath, href, label, picked, rowKey, substitute, title } from "./engine.ts";
 
 test("placeholders are filled with their own types", () => {
   const context = { ids: ["layer", "3"], key: "k", row: { Version: 7 } };
@@ -93,4 +93,9 @@ test("a form starts from what the instance answered", () => {
     IfMatch: "v1",
   });
   assert.deepEqual(current(answer, { op: "Get", path: "Missing" }), {});
+});
+
+test("fields read before a change", () => {
+  assert.deepEqual(picked({ ETag: "v1" }, { IfMatch: "ETag" }), { IfMatch: "v1" });
+  assert.deepEqual(picked(undefined), {});
 });
