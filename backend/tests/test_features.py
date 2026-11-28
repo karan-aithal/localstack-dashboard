@@ -113,6 +113,15 @@ def test_registry_matches_the_api(name, service, node):
             assert not wanted
 
 
+def test_hello_web_package(client):
+    answer = client.get(f"{BASE}/lambda/hello-web").json()
+    with zipfile.ZipFile(io.BytesIO(base64.b64decode(answer["zip"]))) as archive:
+        assert archive.namelist() == ["index.js"]
+        assert archive.read("index.js").decode() == answer["code"]
+        assert archive.getinfo("index.js").external_attr >> 16 == 0o644
+    assert "AWS_LAMBDA_HTTP_ENDPOINT" in answer["code"]
+
+
 def test_licensed_service_names(client, monkeypatch):
     plugins = [
         "localstack.aws.provider/s3:default",

@@ -87,7 +87,7 @@
         "label": "Web functions",
         "service": "lambda-web",
         "list": { "op": "ListWebFunctions", "items": "functions", "key": "functionName", "columns": ["functionName", "state", "createdAt", "updatedAt"] },
-        "create": { "op": "CreateWebFunction" },
+        "create": { "op": "CreateWebFunction", "custom": "web-function-create" },
         "remove": { "op": "DeleteWebFunction", "params": { "functionName": "$key" } },
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "GetWebFunction", "params": { "functionName": "$0" } } },

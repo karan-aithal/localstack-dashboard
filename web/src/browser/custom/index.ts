@@ -6,7 +6,7 @@ import PushCommands from "./Ecr";
 import DynamoItems from "./DynamoItems";
 import { PutEvent, TriggerRule } from "./Events";
 import KinesisRecords from "./Kinesis";
-import { CreateFunction, Invoke, PublishLayer } from "./Lambda";
+import { CreateFunction, CreateWebFunction, Invoke, PublishLayer } from "./Lambda";
 import LogEvents from "./Logs";
 import { SnsSent, SnsToken, SqsMessages } from "./Messages";
 import MetricGraph from "./MetricGraph";
@@ -41,4 +41,5 @@ export const CUSTOM: Record<string, ComponentType<{ ids: string[] }>> = {
   "sns-token": SnsToken,
   "sqs-messages": SqsMessages,
   "timestream-query": TimestreamQuery,
+  "web-function-create": CreateWebFunction,
 };

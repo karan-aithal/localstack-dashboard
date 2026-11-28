@@ -3,6 +3,7 @@ import { type FormEvent, useState } from "react";
 import { Link } from "react-router";
 import { useInstanceQuery, useScope } from "../../api";
 import { readBase64, useAwsCall, useRefresh } from "../../aws";
+import OperationForm from "../../components/OperationForm";
 import { href } from "../../engine";
 import { decodeText, encodeText, type Params } from "../../params";
 
@@ -174,6 +175,102 @@ export function CreateFunction() {
         </p>
       )}
     </form>
+  );
+}
+
+const WEB_ROLE = "dashboard-web-function-role";
+/** Lets Lambda use the role. The role gets no permissions. */
+const LAMBDA_TRUST = JSON.stringify({
+  Version: "2012-10-17",
+  Statement: [{ Effect: "Allow", Principal: { Service: "lambda.amazonaws.com" }, Action: "sts:AssumeRole" }],
+});
+
+/** For something that may be left from an earlier run. */
+const unless = (code: string) => (error: Error) => {
+  if (!error.message.startsWith(code)) throw error;
+};
+
+/** Create a web function from the Hello World package, or from the reader's own with the full form. */
+export function CreateWebFunction() {
+  const scope = useScope();
+  const call = useAwsCall();
+  const refresh = useRefresh();
+  const template = useInstanceQuery<{ code: string; zip: string }>("/lambda/hello-web", false);
+  const bucket = `dashboard-web-functions-${scope.account}-${scope.region}`;
+  const ownRole = `arn:aws:iam::${scope.account}:role/${WEB_ROLE}`;
+  const create = useMutation({
+    mutationFn: async (values: Record<string, string>) => {
+      const ask = <T,>(service: string, operation: string, params: Params) => call<T>(service, operation, params, scope);
+      // a role the reader names is theirs: never created or changed here
+      if (values.role === ownRole) {
+        await ask("iam", "CreateRole", { RoleName: WEB_ROLE, AssumeRolePolicyDocument: LAMBDA_TRUST }).catch(unless("EntityAlreadyExists"));
+      }
+      await ask("s3", "CreateBucket", {
+        Bucket: bucket,
+        ...(scope.region !== "us-east-1" && { CreateBucketConfiguration: { LocationConstraint: scope.region } }),
+      }).catch(unless("BucketAlreadyOwnedByYou"));
+      // AWS asks for the package to be an object version
+      await ask("s3", "PutBucketVersioning", { Bucket: bucket, VersioningConfiguration: { Status: "Enabled" } });
+      const key = `${values.name}.zip`;
+      const { result } = await ask<{ VersionId?: string }>("s3", "PutObject", { Bucket: bucket, Key: key, Body: template.data!.zip });
+      await ask("lambda-web", "CreateWebFunction", {
+        functionName: values.name,
+        revisionConfig: {
+          buildConfig: {
+            codeConfig: { s3Object: { bucket, key, ...(result.VersionId && { versionId: result.VersionId }) } },
+            runtimeConfig: { runtime: values.runtime },
+          },
+          serviceConfig: { executionRoleArn: values.role },
+        },
+        endpointConfig: {
+          endpointName: "default",
+          endpointType: "HomeRegion",
+          authType: "ApplicationManaged",
+          autoDeploymentMode: "LatestRevision",
+        },
+      });
+      return values.name;
+    },
+    onSuccess: refresh,
+  });
+
+  return (
+    <>
+      <form onSubmit={(e) => create.mutate(fields(e))}>
+        <h3>Hello World</h3>
+        <p className="muted">
+          Uploads the code below to the bucket {bucket}, then creates the function with an endpoint named "default". The endpoint does not check
+          who calls it. If the role below is left as it is and missing, it is created without any permissions.
+        </p>
+        <label className="field">Function name *<input name="name" required maxLength={64} pattern="[A-Za-z0-9]([A-Za-z0-9_\-]*[A-Za-z0-9])?" /></label>
+        <label className="field">
+          Runtime *
+          <select name="runtime">
+            <option>nodejs24.x</option>
+            <option>nodejs26.x</option>
+          </select>
+        </label>
+        <label className="field">Execution role ARN *<input name="role" required size={50} key={ownRole} defaultValue={ownRole} /></label>
+        {template.data && (
+          <details>
+            <summary>index.js</summary>
+            <pre className="response" tabIndex={0}>{template.data.code}</pre>
+          </details>
+        )}
+        {template.error && <p role="alert" className="bad">{template.error.message}</p>}
+        <button className="primary" disabled={!template.data || create.isPending}>{create.isPending ? "Creating…" : "Create Hello World"}</button>
+        {create.error && <p role="alert" className="bad">{create.error.message}</p>}
+        {create.data && (
+          <p role="status" className="good">
+            Created. <Link to={href("lambda", "web-functions", [create.data, "endpoints"])}>See its endpoint</Link>
+          </p>
+        )}
+      </form>
+      <details>
+        <summary>Create with your own code</summary>
+        <OperationForm service="lambda-web" operation="CreateWebFunction" />
+      </details>
+    </>
   );
 }
 

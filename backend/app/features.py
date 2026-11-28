@@ -1,5 +1,8 @@
 """What the service pages need beyond plain AWS operations: LocalStack extras and downloads."""
 
+import base64
+import io
+import zipfile
 from typing import Annotated
 from urllib.parse import quote
 
@@ -117,6 +120,30 @@ def trigger_rule(instance: Selected, arn: RuleArn):
 def lambda_runtimes(instance: Selected):
     data = read(instance, "/_aws/lambda/runtimes", optional=True) or {}
     return sorted(data.get("Runtimes", []))
+
+
+# a web function is a server of its own: it has to listen where Lambda says
+HELLO_WEB = """const http = require("http");
+const [host, port] = (process.env.AWS_LAMBDA_HTTP_ENDPOINT || "localhost:3000").split(":");
+
+http
+  .createServer((request, response) => {
+    response.setHeader("content-type", "text/plain");
+    response.end("Hello from Lambda Web Functions!\\n");
+  })
+  .listen(Number(port), host);
+"""
+
+
+@router.get("/lambda/hello-web")
+def hello_web():
+    """Deployment package of the Hello World web function."""
+    entry = zipfile.ZipInfo("index.js")
+    entry.external_attr = 0o644 << 16  # the runtime has to be able to read it
+    package = io.BytesIO()
+    with zipfile.ZipFile(package, "w") as archive:
+        archive.writestr(entry, HELLO_WEB)
+    return {"code": HELLO_WEB, "zip": base64.b64encode(package.getvalue()).decode()}
 
 
 @router.post("/dynamodb/expired")

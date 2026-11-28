@@ -91,7 +91,7 @@ Built: shared engine (`web/src/registry.json`, checked against botocore by tests
 
 Differences from the appendix, still open:
 - Large forms: optional fields are folded away, nested structures stay JSON. No per-structure sections yet.
-- Web functions use the generated create form; no Hello World template.
+- Web functions (changed 2026-11-28): a Hello World template uploads a small Node server to a bucket of its own and creates the function with an endpoint, with a role of its own unless another is named; the generated form stays for other code. Built from the AWS runtime documentation. Checked on the trial instance (2026-11-28): created from the browser, the endpoint answered with the greeting; test resources removed after. The instance downloaded `node:24-slim` (333 MB) to run it. `nodejs26.x` is untried.
 - Uploads are limited to 50 MB per file.
 - "Not in your plan" is implemented but unseen: every 3a service is licensed.
 
@@ -116,8 +116,8 @@ Differences from the appendix, still open:
 - No Neptune graph browser or quick actions.
 - AppSync query runner (added 2026-11-28): the backend reads the API's GraphQL address, then sends the query to the selected instance with that path and host name; no subscriptions. Checked with the instance and AWS answers replaced; no query has run against a real AppSync API.
 - "Browse S3" (added 2026-11-28) sits on the Athena output location and on form fields whose names ask for an S3 address. It fills a text field; inside a nested JSON value it copies the address for pasting. It lists the first 1000 entries of a folder. Checked in a browser with made-up S3 answers.
-- Glue table update (changed 2026-11-28) starts from the current definition; fields the update does not take are left out. Checked with a made-up table; no table was updated on an instance.
-- Athena (changed 2026-11-28): the Databases tab shows `AwsDataCatalog`; other catalogs list their databases and tables from the Catalogs tab. Checked with made-up answers.
+- Glue table update (changed 2026-11-28) starts from the current definition; fields the update does not take are left out. Checked on the trial instance (2026-11-28): after changing the description in the browser, the rest of a test table read back unchanged.
+- Athena (changed 2026-11-28): the Databases tab shows `AwsDataCatalog`; other catalogs list their databases and tables from the Catalogs tab. Checked on the trial instance (2026-11-28) with a test catalog of type GLUE; other catalog types are untried.
 - Removing RDS instances and RDS, DocumentDB and Neptune clusters (changed 2026-11-28) offers "with final snapshot" beside "without snapshot". The snapshot is named `final-<identifier>-<time>`; there is no snapshot page (the API explorer lists them). Not run against a database.
 - Lambda capacity providers belong to a licensed service, so the page shows the instance's error instead of "Not in your plan".
 - MSK: the license lists only an unused legacy provider, which no longer counts as covered.
@@ -136,7 +136,7 @@ With `DASHBOARD_TEST_STATE=1` the live tests also passed (2026-11-28): adding an
 Differences, still open:
 - Pods cannot be saved to or loaded from a remote.
 - Replicator offers MOCK and SINGLE_RESOURCE jobs; batch jobs and the tree strategy are not offered.
-- Chaos custom rule form (added 2026-11-28): service, optional operation, regions and error, probability. The rules it builds are tested; the form was checked in a browser with made-up answers and no custom rule was added to an instance.
+- Chaos custom rule form (added 2026-11-28): service, optional operation, regions and error, probability. The rules it builds are tested. Checked on the trial instance (2026-11-28): a rule added in the browser failed only the matching S3 operation and region, and its Remove button cleared it.
 
 ## Status of Phase 4 (2026-11-27)
 Built: App Inspector (enable, requests, flow, sequence, operation tabs, IAM events, clear) and Extensions (list, install, remove, 16 known packages with names checked on PyPI).
