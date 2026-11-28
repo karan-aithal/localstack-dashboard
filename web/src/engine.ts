@@ -41,7 +41,7 @@ export type Node = {
   create?: Call;
   remove?: Call;
   /** further operations on the selected rows */
-  actions?: (Call & { label: string })[];
+  actions?: (Call & { label: string; danger?: boolean })[];
   views?: Node[];
   show?: Read;
   /**
@@ -66,16 +66,18 @@ function lookup(placeholder: string, { ids = [], row, key }: Context): unknown {
   if (placeholder === "$row") return row;
   // an id that must differ on every request
   if (placeholder === "$now") return String(Date.now());
+  // a name for the snapshot taken as a resource is removed, new on every request
+  if (placeholder === "$snapshot") return `final-${key}-${Date.now()}`;
   if (placeholder.startsWith("$row.")) return typeof row === "object" ? row[placeholder.slice(5)] : undefined;
   const index = Number(placeholder.slice(1));
   // "#1" is the second id as a number
   return placeholder.startsWith("#") && ids[index] !== undefined ? Number(ids[index]) : ids[index];
 }
 
-/** Fill "$0", "#1", "$key", "$row", "$row.Field" and "$now" in a template. Unknown values are left out. */
+/** Fill "$0", "#1", "$key", "$row", "$row.Field", "$now" and "$snapshot" in a template. Unknown values are left out. */
 export function substitute(template: unknown, context: Context): unknown {
   if (typeof template === "string") {
-    return /^(\$key|\$now|\$row(\.\w+)?|[$#]\d)$/.test(template) ? lookup(template, context) : template;
+    return /^(\$key|\$now|\$snapshot|\$row(\.\w+)?|[$#]\d)$/.test(template) ? lookup(template, context) : template;
   }
   if (Array.isArray(template)) return template.map((entry) => substitute(entry, context));
   if (typeof template === "object" && template !== null) {

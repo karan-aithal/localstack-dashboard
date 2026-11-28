@@ -18,6 +18,7 @@ test("whole rows, fresh ids and nested lists", () => {
   const row = { Name: "a" };
   assert.deepEqual(substitute({ Set: "$row" }, { row }), { Set: row });
   assert.match((substitute({ Ref: "$now" }, {}) as { Ref: string }).Ref, /^\d+$/);
+  assert.match((substitute({ Id: "$snapshot" }, { key: "db-1" }) as { Id: string }).Id, /^final-db-1-\d+$/);
   const result = { Reservations: [{ Instances: [{ Id: 1 }, { Id: 2 }] }, { Instances: [] }, { Instances: [{ Id: 3 }] }] };
   assert.deepEqual(getPath(result, "Reservations.Instances"), [{ Id: 1 }, { Id: 2 }, { Id: 3 }]);
   assert.equal(getPath(result, "Reservations.0.Instances.1.Id"), 2);

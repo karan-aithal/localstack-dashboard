@@ -1298,7 +1298,8 @@
         "label": "Instances",
         "list": { "op": "DescribeDBInstances", "items": "DBInstances", "key": "DBInstanceIdentifier", "columns": ["DBInstanceIdentifier", "Engine", "DBInstanceClass", "DBInstanceStatus"] },
         "create": { "op": "CreateDBInstance" },
-        "remove": { "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "remove": { "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key", "SkipFinalSnapshot": true }, "label": "Remove without snapshot" },
+        "actions": [{ "label": "Remove with final snapshot", "danger": true, "op": "DeleteDBInstance", "params": { "DBInstanceIdentifier": "$key", "SkipFinalSnapshot": false, "FinalDBSnapshotIdentifier": "$snapshot" } }],
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "DescribeDBInstances", "params": { "DBInstanceIdentifier": "$0" } } },
           { "id": "update", "label": "Modify", "form": { "op": "ModifyDBInstance", "params": { "DBInstanceIdentifier": "$0" } } }
@@ -1309,7 +1310,8 @@
         "label": "Clusters",
         "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
         "create": { "op": "CreateDBCluster" },
-        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true }, "label": "Remove without snapshot" },
+        "actions": [{ "label": "Remove with final snapshot", "danger": true, "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": false, "FinalDBSnapshotIdentifier": "$snapshot" } }],
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
           { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }
@@ -1339,7 +1341,8 @@
         "label": "Clusters",
         "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
         "create": { "op": "CreateDBCluster", "params": { "Engine": "docdb" } },
-        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true }, "label": "Remove without snapshot" },
+        "actions": [{ "label": "Remove with final snapshot", "danger": true, "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": false, "FinalDBSnapshotIdentifier": "$snapshot" } }],
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
           { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }
@@ -1369,7 +1372,8 @@
         "label": "Clusters",
         "list": { "op": "DescribeDBClusters", "items": "DBClusters", "key": "DBClusterIdentifier", "columns": ["DBClusterIdentifier", "Engine", "EngineVersion", "Status"] },
         "create": { "op": "CreateDBCluster", "params": { "Engine": "neptune" } },
-        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true } },
+        "remove": { "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": true }, "label": "Remove without snapshot" },
+        "actions": [{ "label": "Remove with final snapshot", "danger": true, "op": "DeleteDBCluster", "params": { "DBClusterIdentifier": "$key", "SkipFinalSnapshot": false, "FinalDBSnapshotIdentifier": "$snapshot" } }],
         "views": [
           { "id": "details", "label": "Details", "show": { "op": "DescribeDBClusters", "params": { "DBClusterIdentifier": "$0" } } },
           { "id": "update", "label": "Modify", "form": { "op": "ModifyDBCluster", "params": { "DBClusterIdentifier": "$0" } } }

@@ -118,7 +118,7 @@ Differences from the appendix, still open:
 - "Browse S3" (added 2026-11-28) sits on the Athena output location and on form fields whose names ask for an S3 address. It fills a text field; inside a nested JSON value it copies the address for pasting. It lists the first 1000 entries of a folder. Checked in a browser with made-up S3 answers.
 - Glue table update (changed 2026-11-28) starts from the current definition; fields the update does not take are left out. Checked with a made-up table; no table was updated on an instance.
 - Athena (changed 2026-11-28): the Databases tab shows `AwsDataCatalog`; other catalogs list their databases and tables from the Catalogs tab. Checked with made-up answers.
-- Deleting an RDS or Neptune instance or cluster skips the final snapshot.
+- Removing RDS instances and RDS, DocumentDB and Neptune clusters (changed 2026-11-28) offers "with final snapshot" beside "without snapshot". The snapshot is named `final-<identifier>-<time>`; there is no snapshot page (the API explorer lists them). Not run against a database.
 - Lambda capacity providers belong to a licensed service, so the page shows the instance's error instead of "Not in your plan".
 - MSK: the license lists only an unused legacy provider, which no longer counts as covered.
 
