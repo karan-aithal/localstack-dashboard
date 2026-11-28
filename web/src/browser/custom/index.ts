@@ -13,11 +13,12 @@ import MetricGraph from "./MetricGraph";
 import RecordEditor from "./Route53";
 import S3Objects from "./S3Objects";
 import { AthenaSql, TimestreamQuery } from "./Queries";
-import Schema from "./AppSync";
+import Schema, { Query } from "./AppSync";
 import { Mailbox, SendEmail } from "./Ses";
 import Definition from "./StepFunctions";
 
 export const CUSTOM: Record<string, ComponentType<{ ids: string[] }>> = {
+  "appsync-query": Query,
   "appsync-schema": Schema,
   "athena-sql": AthenaSql,
   "cfn-stack": StackEditor,

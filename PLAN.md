@@ -113,7 +113,8 @@ Checked on the freemium license: names, parameters, keys and columns against bot
 Trial license (2026-11-27, expires after about 29 days): every locked page's first read answers, except DMS, which needs the instance started with `ENABLE_DMS=1`; account contacts answer "not found" until set. Create, view and remove pass for 25 cases in `backend/tests/test_trial.py`. The AppSync and Timestream cases are skipped by default and have not been run. Found and fixed: CloudFront distributions could not be removed, because the delete needs a version tag the list lacks. All 54 formerly locked pages draw real answers in a browser, apart from DMS and unset account contacts. The first Timestream call makes the instance install PostgreSQL, and AppSync downloads its utilities; tests skip both unless `DASHBOARD_TEST_DOWNLOADS=1`. Not covered by those tests because creating downloads or may download engines: CodeCommit, ECR, EKS, ElastiCache, RDS, DocumentDB, Neptune, MQ, MWAA, MSK, Athena, SageMaker endpoints, Lambda capacity providers.
 
 Differences from the appendix, still open:
-- No AppSync query runner, or Neptune graph browser and quick actions.
+- No Neptune graph browser or quick actions.
+- AppSync query runner (added 2026-11-28): the backend reads the API's GraphQL address, then sends the query to the selected instance with that path and host name; no subscriptions. Checked with the instance and AWS answers replaced; no query has run against a real AppSync API.
 - "Browse S3" (added 2026-11-28) sits on the Athena output location and on form fields whose names ask for an S3 address. It fills a text field; inside a nested JSON value it copies the address for pasting. It lists the first 1000 entries of a folder. Checked in a browser with made-up S3 answers.
 - Glue table update starts from an empty form.
 - Athena browses the `AwsDataCatalog` catalog only.

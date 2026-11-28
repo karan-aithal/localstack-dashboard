@@ -1124,6 +1124,7 @@
             ]
           },
           { "id": "schema", "label": "Schema", "custom": "appsync-schema" },
+          { "id": "query", "label": "Query", "custom": "appsync-query" },
           {
             "id": "types",
             "label": "Types",

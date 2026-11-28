@@ -11,6 +11,7 @@ from functools import lru_cache
 from urllib.parse import urlsplit
 
 import boto3
+import httpx
 import jmespath
 from botocore import xform_name
 from botocore.config import Config
@@ -22,7 +23,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .instance import Selected, call
-from .security import redact_text
+from .security import redact_strings, redact_text
 
 # Nothing from the user's own AWS setup may reach these clients: no credentials, profile,
 # region or endpoint override from the environment or from ~/.aws.
@@ -281,3 +282,45 @@ def invoke(instance: Selected, service: str, operation: str, invocation: Invocat
         "result": result,
         "next": next_page(service, operation, result),
     }
+
+
+class GraphQL(BaseModel):
+    query: str = Field(min_length=1, max_length=100_000)
+    variables: dict = Field(default_factory=dict)
+    # printable characters only: both become header values
+    api_key: str | None = Field(None, pattern=r"^[ -~]{1,200}$")
+    authorization: str | None = Field(None, max_length=8192, pattern=r"^[ -~]+$")
+    region: str = Field("us-east-1", pattern=r"^[a-z0-9-]{1,30}$")
+    account: str = Field("000000000000", pattern=r"^\d{12}$")
+
+
+@router.post("/instances/{name}/appsync/{api_id}/query")
+def graphql(instance: Selected, api_id: str, request: GraphQL):
+    """Run a GraphQL request against an AppSync API of the instance."""
+    where = Invocation(params={"apiId": api_id}, region=request.region, account=request.account)
+    found = invoke(instance, "appsync", "GetGraphqlApi", where)["result"]
+    address = urlsplit(found.get("graphqlApi", {}).get("uris", {}).get("GRAPHQL", ""))
+    if not address.path.startswith("/"):
+        raise HTTPException(502, "The instance gave no GraphQL address for this API")
+    # only the path and the host name of that address are used: the request goes to the instance
+    headers = {"host": address.netloc} if address.netloc else {}
+    if request.api_key:
+        headers["x-api-key"] = request.api_key
+    if request.authorization:
+        headers["authorization"] = request.authorization
+    try:
+        response = httpx.post(
+            instance.endpoint + address.path,
+            json={"query": request.query, "variables": request.variables},
+            headers=headers,
+            timeout=60,
+            trust_env=False,
+        )
+    except httpx.HTTPError as e:
+        raise HTTPException(502, f"Instance unreachable: {type(e).__name__}") from e
+    # a refused request explains itself in the body, so every status is passed on
+    try:
+        result = redact_strings(response.json())
+    except ValueError:
+        result = redact_text(response.text[:BODY_LIMIT])
+    return {"status": response.status_code, "result": result}

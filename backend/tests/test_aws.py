@@ -4,6 +4,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+import httpx
 import pytest
 from app import aws, instance
 from botocore.response import StreamingBody
@@ -40,6 +41,32 @@ def test_describe(client):
 @pytest.mark.parametrize("path", ["/api/aws/nope", "/api/aws/s3/Nope", "/api/aws/..%2Fs3"])
 def test_unknown_names(client, path):
     assert client.get(path).status_code == 404
+
+
+def test_graphql_goes_to_the_instance_only(client, monkeypatch):
+    url = "/api/instances/default/appsync/abc/query"
+    assert client.post(url, json={"query": "{ a }"}).status_code == 403
+    for bad in ({"query": ""}, {"query": "{ a }", "api_key": "a\r\nx: y"}):
+        assert client.post(url, json=bad, headers=ORIGIN).status_code == 422
+
+    sent = []
+    address = {"uris": {"GRAPHQL": "http://abc.evil.example/graphql/abc"}}
+    monkeypatch.setattr(aws, "invoke", lambda *_: {"result": {"graphqlApi": address}})
+
+    def post(target, **options):
+        sent.append((target, options))
+        return httpx.Response(401, json={"errors": [{"message": "ls-abcdefgh1234 denied"}]})
+
+    monkeypatch.setattr(aws.httpx, "post", post)
+    response = client.post(url, json={"query": "{ a }", "api_key": "key"}, headers=ORIGIN)
+    assert response.json() == {"status": 401, "result": {"errors": [{"message": "<redacted> denied"}]}}
+    target, options = sent[0]
+    assert target == "http://localhost:4566/graphql/abc"
+    assert options["headers"] == {"host": "abc.evil.example", "x-api-key": "key"}
+
+    address["uris"] = {}
+    assert client.post(url, json={"query": "{ a }"}, headers=ORIGIN).status_code == 502
+    assert len(sent) == 1
 
 
 def test_invoke_is_guarded(client):
