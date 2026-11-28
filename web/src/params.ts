@@ -7,6 +7,8 @@ export type Field = {
   enum: string[];
   documentation: string;
   template: unknown;
+  /** names a nested structure takes */
+  members?: string[];
 };
 
 export type Params = Record<string, unknown>;
@@ -54,6 +56,12 @@ export function toParams(values: Values, fields: Field[]): Params {
     }
   }
   return params;
+}
+
+/** What was read often holds more than the change takes, such as a creation time: leave that out. */
+export function accepted(value: unknown, { members }: Field): unknown {
+  if (!members?.length || typeof value !== "object" || value === null) return value;
+  return Object.fromEntries(Object.entries(value).filter(([name]) => members.includes(name)));
 }
 
 /** Throws rather than silently dropping or retyping anything the form cannot hold. */

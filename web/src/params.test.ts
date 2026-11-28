@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decodeText, encodeText, type Field, isDestructive, parseParams, takesS3, toParams, toValues } from "./params.ts";
+import { accepted, decodeText, encodeText, type Field, isDestructive, parseParams, takesS3, toParams, toValues } from "./params.ts";
 
 const field = (name: string, type: string): Field => ({
   name,
@@ -55,4 +55,11 @@ test("destructive operations are recognised", () => {
     assert.ok(isDestructive(name), name);
   }
   assert.ok(!isDestructive("ListBuckets"));
+});
+
+test("a read structure keeps only what the change takes", () => {
+  const input = { ...field("TableInput", "structure"), members: ["Name", "Owner"] };
+  assert.deepEqual(accepted({ Name: "t", CreateTime: "x" }, input), { Name: "t" });
+  assert.deepEqual(accepted({ any: 1 }, field("Tags", "map")), { any: 1 });
+  assert.equal(accepted("text", input), "text");
 });

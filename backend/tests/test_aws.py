@@ -35,6 +35,9 @@ def test_describe(client):
     # AttributeValue contains itself: the example value must still terminate
     item = client.get("/api/aws/dynamodb/PutItem").json()["fields"]
     assert any(f["name"] == "Item" and f["template"] for f in item)
+    table = client.get("/api/aws/glue/UpdateTable").json()["fields"]
+    accepted = next(f["members"] for f in table if f["name"] == "TableInput")
+    assert "StorageDescriptor" in accepted and "CreateTime" not in accepted
     assert client.get("/api/aws/sts/GetCallerIdentity").json()["fields"] == []
 
 

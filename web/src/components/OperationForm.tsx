@@ -5,6 +5,7 @@ import { type FormEvent, useMemo, useState } from "react";
 import { api, type Scope, useInstance, useScope } from "../api";
 import { readBase64, type Result, useAwsCall, useRefresh } from "../aws";
 import {
+  accepted,
   decodeText,
   encodeText,
   type Field,
@@ -48,12 +49,14 @@ function Form({ service, operation, initial = {}, submitLabel = "Send", spec }: 
   const call = useAwsCall();
   const refresh = useRefresh();
   const start = () => {
-    const types = new Map(fields.map((field) => [field.name, field.type]));
-    const known = Object.entries(initial).filter(([name, value]) => types.has(name) && value !== null);
+    const byName = new Map(fields.map((field) => [field.name, field]));
+    const known = Object.entries(initial).filter(([name, value]) => byName.has(name) && value !== null);
     // some responses hand back a parsed document where the request wants its text, such as a policy
     const asText = known.map(([name, value]) => [
       name,
-      types.get(name) === "string" && typeof value === "object" ? JSON.stringify(value, null, 2) : value,
+      byName.get(name)!.type === "string" && typeof value === "object"
+        ? JSON.stringify(value, null, 2)
+        : accepted(value, byName.get(name)!),
     ]);
     return toValues(Object.fromEntries(asText), fields);
   };

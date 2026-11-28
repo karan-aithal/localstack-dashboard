@@ -1493,7 +1493,7 @@
             "remove": { "op": "DeleteTable", "params": { "DatabaseName": "$0", "Name": "$key" } },
             "views": [
               { "id": "details", "label": "Details", "show": { "op": "GetTable", "params": { "DatabaseName": "$0", "Name": "$1" } } },
-              { "id": "update", "label": "Update", "form": { "op": "UpdateTable", "params": { "DatabaseName": "$0" } } }
+              { "id": "update", "label": "Update", "form": { "op": "UpdateTable", "params": { "DatabaseName": "$0" }, "from": { "op": "GetTable", "params": { "DatabaseName": "$0", "Name": "$1" }, "path": "Table", "as": "TableInput" } } }
             ]
           },
           { "id": "details", "label": "Details", "show": { "op": "GetDatabase", "params": { "Name": "$0" } } }

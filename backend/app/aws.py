@@ -242,6 +242,8 @@ def describe(service: str, operation: str):
             "enum": getattr(member, "enum", []),
             "documentation": summary(member.documentation),
             "template": template(member),
+            # the whole list, which the template of a tagged union does not show
+            "members": list(member.members) if member.type_name == "structure" else [],
         }
         for name, member in members.items()
     ]
