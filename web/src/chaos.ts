@@ -1,4 +1,4 @@
-/** The ready-made chaos experiments: what the reader fills in, and the fault rules that follow. */
+/** The chaos experiments, ready-made and custom: what the reader fills in, and the fault rules that follow. */
 
 export type Rule = {
   region?: string;
@@ -9,7 +9,7 @@ export type Rule = {
   error?: { statusCode?: number; code?: string };
 };
 
-export type Input = "probability" | "region" | "services" | "regions";
+export type Input = "probability" | "region" | "services" | "regions" | "service" | "operation" | "statusCode" | "code";
 /** `probability` is in percent; lists are comma separated text. */
 export type Values = Record<Input, string>;
 
@@ -17,6 +17,8 @@ export type Experiment = {
   title: string;
   about: string;
   inputs: Input[];
+  /** inputs that may stay blank */
+  optional?: Input[];
   defaults: Partial<Values>;
   rules: (values: Values) => Rule[];
 };
@@ -67,6 +69,28 @@ export const EXPERIMENTS: Experiment[] = [
     inputs: ["regions"],
     defaults: { regions: "us-east-1, us-west-2" },
     rules: ({ regions }) => list(regions).map((region) => ({ region, error: unavailable })),
+  },
+  {
+    title: "Custom rule",
+    about: "Calls of one service fail. A blank operation or region matches all of them; a blank error leaves the default.",
+    inputs: ["service", "operation", "region", "probability", "statusCode", "code"],
+    optional: ["operation", "region", "statusCode", "code"],
+    defaults: {},
+    rules: (values) => {
+      const service = values.service.trim();
+      if (!service) return [];
+      const operation = values.operation.trim();
+      const code = values.code.trim();
+      const error = { ...(values.statusCode && { statusCode: Number(values.statusCode) }), ...(code && { code }) };
+      const rule: Rule = {
+        service,
+        ...(operation && { operation }),
+        probability: chance(values),
+        ...(Object.keys(error).length > 0 && { error }),
+      };
+      const regions = list(values.region);
+      return regions.length ? regions.map((region) => ({ ...rule, region })) : [rule];
+    },
   },
 ];
 

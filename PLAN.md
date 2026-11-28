@@ -136,7 +136,7 @@ With `DASHBOARD_TEST_STATE=1` the live tests also passed (2026-11-28): adding an
 Differences, still open:
 - Pods cannot be saved to or loaded from a remote.
 - Replicator offers MOCK and SINGLE_RESOURCE jobs; batch jobs and the tree strategy are not offered.
-- Chaos has no form for a custom rule.
+- Chaos custom rule form (added 2026-11-28): service, optional operation, regions and error, probability. The rules it builds are tested; the form was checked in a browser with made-up answers and no custom rule was added to an instance.
 
 ## Status of Phase 4 (2026-11-27)
 Built: App Inspector (enable, requests, flow, sequence, operation tabs, IAM events, clear) and Extensions (list, install, remove, 16 known packages with names checked on PyPI).

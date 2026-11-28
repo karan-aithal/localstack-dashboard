@@ -1,7 +1,7 @@
 /** Chaos engineering: make AWS calls fail or slow down, and undo it. */
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type InputHTMLAttributes, useState } from "react";
 import { api, instancePath, useInstance, useInstanceQuery } from "../api";
 import { EXPERIMENTS, type Experiment, type Input, type Rule, template, type Values } from "../chaos";
 import type { InstanceMap } from "../main";
@@ -9,11 +9,18 @@ import type { InstanceMap } from "../main";
 type Current = { faults: Rule[]; latency: number };
 type Change = { path: string; method: string; body?: unknown };
 
-const LABELS: Record<Input, string> = {
-  probability: "Probability (%)",
-  region: "Region",
-  services: "Services, comma separated",
-  regions: "Regions, comma separated",
+const NAMES = { pattern: "[A-Za-z0-9_, \\-]+" };
+
+/** Label and limits of each input; the backend checks the same limits. */
+const FIELDS: Record<Input, { label: string } & InputHTMLAttributes<HTMLInputElement>> = {
+  probability: { label: "Probability (%)", type: "number", min: 1, max: 100 },
+  region: { label: "Region", ...NAMES },
+  services: { label: "Services, comma separated", ...NAMES },
+  regions: { label: "Regions, comma separated", ...NAMES },
+  service: { label: "Service, such as s3", pattern: "[A-Za-z0-9_\\-]+" },
+  operation: { label: "Operation, such as GetObject", pattern: "[A-Za-z]+" },
+  statusCode: { label: "Error status code", type: "number", min: 400, max: 599 },
+  code: { label: "Error code, such as SlowDown", pattern: "[A-Za-z0-9]+" },
 };
 
 export default function Chaos() {
@@ -86,7 +93,11 @@ export default function Chaos() {
 function Card({ experiment, busy, run }: { experiment: Experiment; busy: boolean; run: (rules: Rule[]) => void }) {
   const instance = useInstance();
   const instances = useQuery({ queryKey: ["instances"], queryFn: () => api<InstanceMap>("/api/instances") });
-  const [values, setValues] = useState<Values>({ probability: "100", region: "", services: "", regions: "", ...experiment.defaults });
+  const [values, setValues] = useState<Values>(() => ({
+    ...(Object.fromEntries(Object.keys(FIELDS).map((name) => [name, ""])) as Values),
+    probability: "100",
+    ...experiment.defaults,
+  }));
   const rules = experiment.rules(values);
   const command = template(instances.data?.[instance]?.endpoint ?? "http://localhost:4566", rules);
   const submit = (event: FormEvent) => {
@@ -100,13 +111,16 @@ function Card({ experiment, busy, run }: { experiment: Experiment; busy: boolean
       <strong>{experiment.title}</strong>
       <span className="muted">{experiment.about}</span>
       <form onSubmit={submit}>
-        {experiment.inputs.map((name) => (
-          <label key={name} className="field">
-            {LABELS[name]}
-            <input required value={values[name]} onChange={(e) => setValues((old) => ({ ...old, [name]: e.target.value }))}
-              {...(name === "probability" ? { type: "number", min: 1, max: 100 } : { pattern: "[A-Za-z0-9_, \\-]+" })} />
-          </label>
-        ))}
+        {experiment.inputs.map((name) => {
+          const { label, ...limits } = FIELDS[name];
+          const optional = experiment.optional?.includes(name);
+          return (
+            <label key={name} className="field">
+              {label}{optional && " (optional)"}
+              <input required={!optional} value={values[name]} onChange={(e) => setValues((old) => ({ ...old, [name]: e.target.value }))} {...limits} />
+            </label>
+          );
+        })}
         <button className="danger" disabled={busy}>Run experiment</button>
       </form>
       <details>
