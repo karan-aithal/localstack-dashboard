@@ -5,14 +5,18 @@ import { BrowserRouter, NavLink, Route, Routes } from "react-router";
 import { api, InstanceContext, ScopeContext, useInstanceQuery } from "./api";
 import Browser from "./browser/Browser";
 import AppInspector from "./pages/AppInspector";
+import Chaos from "./pages/Chaos";
 import Config from "./pages/Config";
 import Explorer from "./pages/Explorer";
 import Extensions from "./pages/Extensions";
+import IamPolicies from "./pages/IamPolicies";
 import Insights from "./pages/Insights";
 import Instances from "./pages/Instances";
 import Logs from "./pages/Logs";
 import Overview from "./pages/Overview";
+import Replicator from "./pages/Replicator";
 import Stack from "./pages/Stack";
+import StatePods from "./pages/StatePods";
 import Status from "./pages/Status";
 import "./styles.css";
 
@@ -25,6 +29,10 @@ const PAGES = [
   { path: "/resources", route: "/resources/:service?/:tab?", label: "Resources", page: <Browser /> },
   { path: "/explorer", route: "/explorer/:service?/:operation?", label: "Explorer", page: <Explorer /> },
   { path: "/app-inspector", label: "App Inspector", page: <AppInspector />, plugin: "appinspector" },
+  { path: "/iam-policies", label: "IAM Policies", page: <IamPolicies />, plugin: "iam-stream" },
+  { path: "/chaos", label: "Chaos", page: <Chaos />, plugin: "chaos" },
+  { path: "/state", label: "State", page: <StatePods />, plugin: "pods" },
+  { path: "/replicator", label: "Replicator", page: <Replicator />, plugin: "replicator" },
   { path: "/extensions", label: "Extensions", page: <Extensions />, plugin: "extensions" },
   { path: "/insights", route: "/insights/:session?", label: "Stack Insights", page: <Insights /> },
   { path: "/logs", label: "Logs", page: <Logs /> },

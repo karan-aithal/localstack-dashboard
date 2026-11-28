@@ -24,6 +24,10 @@ setting.
 | Resources | Pages for 51 services, such as S3, Lambda, IAM and Step Functions. A freemium license covers 24; the others show "Not in your plan" |
 | Explorer | Any operation of any service: generated form or JSON, response, next page |
 | App Inspector | Recorded operations as requests, with flow, sequence, payloads and IAM events |
+| IAM Policies | Live policy stream, policy per principal, permission check, enforcement setting |
+| Chaos | Ready-made fault experiments and added latency, with the matching API command |
+| State | Local pods (save, import, export, load), reset, save and load, state browser, pod remotes |
+| Replicator | Copy a resource from a real AWS account into the instance |
 | Extensions | Installed extensions, install by package name, known packages |
 | Stack Insights | One session per run of the instance: calls over time, per service and one by one |
 | Logs | Live container logs with text and level filter |
@@ -37,14 +41,29 @@ operation, status and error code in `insights.db` next to the bookmarks. Session
 after the container is removed; delete that file to forget them. Runs that were removed before
 the page read them are gone.
 
+IAM Policies, Chaos, State and Replicator need a plan that includes them; otherwise they show
+"Not in your plan".
+
+Local pods are zip files in `~/.config/localstack-dashboard/pods/`. They contain your instance's
+data, secrets included.
+
+Replicator is the one feature that reaches outside your machine: you enter AWS credentials per
+job, the dashboard passes them to your instance and keeps no copy.
+
+`DASHBOARD_TEST_STATE=1 make test` also runs tests that inject a fault, switch IAM to soft mode
+and reset the SQS service of the instance.
+
 ## Resource pages
 
 Pages are described in `web/src/registry.json`: for each tab the list operation, key, columns,
 create and remove operations, and views. `make test` checks every entry against the AWS API
 definitions. Views a table or generated form cannot express live in `web/src/browser/custom/`.
 
-Pages of services outside a freemium license have never run against a real service. Their
-operations, parameters and columns are checked against the definitions only.
+`make test` runs live checks against the instance when it is up; they create and remove
+`dashboard-test-*` resources. Pages of services outside a freemium license are checked live only
+where the license covers them. Services whose first use downloads software are skipped unless
+`DASHBOARD_TEST_DOWNLOADS=1`. Pages that need large engines, such as RDS, EKS and MSK, have only
+been checked against the definitions and their first read.
 
 Uploads through the dashboard are limited to 50 MB per file.
 

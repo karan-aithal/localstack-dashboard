@@ -5,7 +5,19 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import appinspector, aws, extensions, features, insights, instance, logs
+from . import (
+    appinspector,
+    aws,
+    chaos,
+    extensions,
+    features,
+    iam,
+    insights,
+    instance,
+    logs,
+    replicator,
+    state,
+)
 from .security import ALLOWED_HOSTS, csrf_guard
 
 UI = Path(__file__).resolve().parents[2] / "web" / "dist"
@@ -55,5 +67,9 @@ app.include_router(features.router)
 app.include_router(appinspector.router)
 app.include_router(extensions.router)
 app.include_router(insights.router)
+app.include_router(chaos.router)
+app.include_router(iam.router)
+app.include_router(state.router)
+app.include_router(replicator.router)
 # registered last: it takes whatever is left
 mount_ui(app, UI)

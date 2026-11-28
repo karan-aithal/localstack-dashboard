@@ -108,9 +108,9 @@ Differences from the appendix, still open:
 ## Status of Phase 3c (2026-11-27)
 Built: the 27 locked tiles and the locked tabs of licensed tiles (API Gateway V2, EventBridge Pipes, Load Balancers V2, SES V2, Lambda capacity providers, Cognito identity pools), with custom views for the Athena and Timestream query editors, the AppSync schema and ECR push commands. They unlock by themselves when the license covers the service.
 
-**Untested against real services.** Checked: names, parameters, keys and columns against botocore; each page's first read reaches the instance and is refused for the license only; all pages render in a browser; the custom views with made-up answers.
+Checked on the freemium license: names, parameters, keys and columns against botocore; each page's first read reaches the instance and is refused for the license only; all pages render in a browser; the custom views with made-up answers.
 
-Trial license (2026-11-27, expires after about 29 days): every locked page's first read answers, except DMS, which needs the instance started with `ENABLE_DMS=1`; account contacts answer "not found" until set. Create, view and remove per page are written in `backend/tests/test_trial.py` but have not been run. The first Timestream call makes the instance install PostgreSQL, and AppSync downloads its utilities; tests skip both unless `DASHBOARD_TEST_DOWNLOADS=1`. Not covered by those tests because creating downloads or may download engines: CodeCommit, ECR, EKS, ElastiCache, RDS, DocumentDB, Neptune, MQ, MWAA, MSK, Athena, SageMaker endpoints, Lambda capacity providers.
+Trial license (2026-11-27, expires after about 29 days): every locked page's first read answers, except DMS, which needs the instance started with `ENABLE_DMS=1`; account contacts answer "not found" until set. Create, view and remove pass for 25 cases in `backend/tests/test_trial.py`. The AppSync and Timestream cases are skipped by default and have not been run. Found and fixed: CloudFront distributions could not be removed, because the delete needs a version tag the list lacks. All 54 formerly locked pages draw real answers in a browser, apart from DMS and unset account contacts. The first Timestream call makes the instance install PostgreSQL, and AppSync downloads its utilities; tests skip both unless `DASHBOARD_TEST_DOWNLOADS=1`. Not covered by those tests because creating downloads or may download engines: CodeCommit, ECR, EKS, ElastiCache, RDS, DocumentDB, Neptune, MQ, MWAA, MSK, Athena, SageMaker endpoints, Lambda capacity providers.
 
 Differences from the appendix, still open:
 - No AppSync query runner, Neptune graph browser or quick actions, or "Browse S3" picker.
@@ -119,6 +119,20 @@ Differences from the appendix, still open:
 - Deleting an RDS or Neptune instance or cluster skips the final snapshot.
 - Lambda capacity providers belong to a licensed service, so the page shows the instance's error instead of "Not in your plan".
 - MSK: the license lists only an unused legacy provider, which no longer counts as covered.
+
+## Status of Phase 6 (2026-11-28)
+Built: Chaos (six experiments, active rules, latency, API command), IAM Policies (policy stream, summary, permission check, enforcement), State (local pods with save, import, export, load, delete and keep-newest cleanup; reset; save and load; state browser; remotes) and Replicator (job form, jobs, supported resources).
+
+API facts found: the policy stream is `GET /_aws/iam/policies/stream` (a line of JSON per call), the summary `/_aws/iam/policies/summary`; the permission check wants `required_permissions`, though the instance's API description says `required_permission`.
+
+Verified: input checks, origin checks, pod files and credential redaction with the instance replaced; reads, permission check, policy stream and a state export against the trial instance; pages and confirm dialogs in a browser.
+
+**Not verified, because they change the instance:** adding and removing faults and latency, switching enforcement, loading a pod, reset, save and load, adding a remote. Tests for faults, enforcement and a pod round trip exist and run with `DASHBOARD_TEST_STATE=1`. **Never run:** a replication job.
+
+Differences, still open:
+- Pods cannot be saved to or loaded from a remote.
+- Replicator offers MOCK and SINGLE_RESOURCE jobs; batch jobs and the tree strategy are not offered.
+- Chaos has no form for a custom rule.
 
 ## Status of Phase 4 (2026-11-27)
 Built: App Inspector (enable, requests, flow, sequence, operation tabs, IAM events, clear) and Extensions (list, install, remove, 16 known packages with names checked on PyPI).
@@ -157,7 +171,7 @@ Accounts, login, workspaces, users and licenses, SSO/SCIM, billing, identity log
 - Phase 6: locked state verified now; behaviour only once your plan loads those plugins. Until then reported as untested.
 
 ## Start
-After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is only partly tested against real services. Phase 6 remains and can now be tried on the trial license.
+After approval: Phases 0 and 1 first, then stop for your review. Phases 0 to 5, 7 and 3c are committed. Phase 3c is tested on the trial license where no large download is needed. Phase 6 is committed; its state-changing actions are not yet run.
 
 ## Appendix: other tabs (live app, 2026-11-26, view only)
 
