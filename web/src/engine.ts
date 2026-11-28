@@ -7,7 +7,10 @@ export type Call = {
   params?: Params;
   label?: string;
   custom?: string;
-  /** reads, for a change to a row, what the change needs and the row lacks, such as a version tag */
+  /**
+   * runs before a change to a row, which is left out if this fails. It reads what the change needs and
+   * the row lacks, such as a version tag, or saves something, such as a snapshot.
+   */
   first?: { op: string; params?: Params; also: Record<string, string> };
 };
 /** `reveal` hides the result, such as a secret value, until it is asked for. */
